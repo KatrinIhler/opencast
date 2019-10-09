@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
+               name="org.opencastproject.index.utils.IndexUtils"
+               immediate="true">
+  <implementation class="org.opencastproject.index.utils.IndexUtils"/>
+  <property name="service.description" value="Index Utils"/>
+  <service>
+    <provide interface="org.opencastproject.index.utils.IndexUtils"/>
+  </service>
+  <reference name="SecurityService"
+             interface="org.opencastproject.security.api.SecurityService"
+             bind="setSecurityService"/>
+  <reference name="asset-manager" interface="org.opencastproject.assetmanager.api.AssetManager"
+             bind="setAssetManager"/>
+  <reference name="authorization-service" interface="org.opencastproject.security.api.AuthorizationService"
+             bind="setAuthorizationService"/>
+</scr:component>

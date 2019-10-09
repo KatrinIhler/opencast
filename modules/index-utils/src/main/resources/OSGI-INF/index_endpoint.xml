@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0"
+               name="org.opencastproject.index.utils.endpoint.IndexEndpoint"
+               immediate="true">
+  <implementation class="org.opencastproject.index.utils.endpoint.IndexEndpoint"/>
+  <property name="service.description" value="Index Utils REST Endpoint"/>
+  <property name="opencast.service.type" value="org.opencastproject.index.utils"/>
+  <property name="opencast.service.path" value="/index-utils"/>
+  <property name="opencast.service.jobproducer" value="false"/>
+
+  <property name="service.description" value="Index Utils"/>
+  <service>
+    <provide interface="org.opencastproject.index.utils.endpoint.IndexEndpoint"/>
+  </service>
+  <reference name="ExternalIndex"
+             interface="org.opencastproject.external.index.ExternalIndex"
+             bind="setExternalIndex"/>
+  <reference name="AdminUISearchIndex"
+             interface="org.opencastproject.adminui.index.AdminUISearchIndex"
+             bind="setAdminUIIndex"/>
+  <reference name="WorkflowServiceSolrIndex"
+             interface="org.opencastproject.workflow.impl.WorkflowServiceIndex"
+             bind="setWorkflowIndex"/>
+  <reference name="IndexUtils"
+             interface="org.opencastproject.index.utils.IndexUtils"
+             bind="setIndexUtils"/>
+</scr:component>

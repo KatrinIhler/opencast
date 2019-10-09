@@ -320,6 +320,9 @@
     <sec:intercept-url pattern="/users/**" access="ROLE_ADMIN" />
     <sec:intercept-url pattern="/admin/users.html" access="ROLE_ADMIN" />
 
+    <!-- Secure index utils for admins only -->
+    <sec:intercept-url pattern="/index-utils/*" access="ROLE_ADMIN" />
+
     <!-- Enable 2-legged OAuth access ("signed fetch") to the LTI launch servlet -->
     <sec:intercept-url pattern="/lti/**" access="ROLE_OAUTH_USER" />
 
