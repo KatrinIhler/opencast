@@ -1478,11 +1478,11 @@ public abstract class AbstractEventEndpoint {
     try {
       final MetadataList metadataList = getIndexService().updateAllEventMetadata(id, metadataJSON, getIndex());
       if (this.metadataChangeWorkflow != null) {
-        final boolean workflowsStarted = startChangeWorkflow(Collections.singleton(id));
-        if (workflowsStarted) {
-          logger.error("couldn't start workflow {} on event {}", this.metadataChangeWorkflow, id);
-        } else {
+        final boolean workflowStarted = startMetadataChangeWorkflow(Collections.singleton(id));
+        if (workflowStarted) {
           metadataList.setLocked(Locked.WORKFLOW_RUNNING);
+        } else {
+          logger.error("Couldn't start workflow {} on event {}", this.metadataChangeWorkflow, id);
         }
       }
       return okJson(metadataList.toJSON());
@@ -1491,7 +1491,7 @@ public abstract class AbstractEventEndpoint {
     }
   }
 
-  private boolean startChangeWorkflow(final Collection<String> mpIds)
+  private boolean startMetadataChangeWorkflow(final Collection<String> mpIds)
     throws WorkflowDatabaseException, NotFoundException {
     final WorkflowDefinition wfd = getWorkflowService().getWorkflowDefinitionById(this.metadataChangeWorkflow);
     final Workflows workflows = new Workflows(getAssetManager(), getWorkflowService());
@@ -1561,7 +1561,11 @@ public abstract class AbstractEventEndpoint {
     }
 
     if (this.metadataChangeWorkflow != null) {
-      startChangeWorkflow(eventsUpdated);
+      final boolean allWorkflowsStarted = startMetadataChangeWorkflow(eventsUpdated);
+      if (!allWorkflowsStarted) {
+        logger.error("Couldn't start one or more workflows of type {} on events {}", this.metadataChangeWorkflow,
+                StringUtils.join(eventsUpdated, ", "));
+      }
     }
 
     // errors occurred?
