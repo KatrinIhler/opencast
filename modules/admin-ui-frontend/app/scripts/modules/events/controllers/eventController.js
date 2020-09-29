@@ -23,88 +23,43 @@
 // Controller for all event screens.
 angular.module('adminNg.controllers')
 .controller('EventCtrl', [
-  '$scope',
-  'Notifications',
-  'EventTransactionResource',
-  'EventMetadataResource',
-  'EventAssetsResource',
-  'EventAssetCatalogsResource',
-  'CommentResource',
-  'EventWorkflowsResource',
-  'EventWorkflowActionResource',
-  'EventWorkflowDetailsResource',
-  'ResourcesListResource',
-  'RolesResource',
-  'EventAccessResource',
-  'EventPublicationsResource',
-  'EventSchedulingResource',
-  'NewEventProcessingResource',
-  'CaptureAgentsResource',
-  'ConflictCheckResource',
-  'Language',
-  'JsHelper',
-  '$sce',
-  '$timeout',
-  'EventHelperService',
-  'UploadAssetOptions',
-  'EventUploadAssetResource',
-  'Table',
-  'SchedulingHelperService',
-  'StatisticsReusable',
-  'Modal',
-  '$translate',
-  function (
-    $scope,
-    Notifications,
-    EventTransactionResource,
-    EventMetadataResource,
-    EventAssetsResource,
-    EventAssetCatalogsResource,
-    CommentResource,
-    EventWorkflowsResource,
-    EventWorkflowActionResource,
-    EventWorkflowDetailsResource,
-    ResourcesListResource,
-    RolesResource,
-    EventAccessResource,
-    EventPublicationsResource,
-    EventSchedulingResource,
-    NewEventProcessingResource,
-    CaptureAgentsResource,
-    ConflictCheckResource,
-    Language,
-    JsHelper,
-    $sce,
-    $timeout,
-    EventHelperService,
-    UploadAssetOptions,
-    EventUploadAssetResource,
-    Table,
-    SchedulingHelperService,
-    StatisticsReusable,
-    Modal,
-    $translate) {
+  '$scope', 'Notifications', 'EventTransactionResource', 'EventMetadataResource', 'EventAssetsResource',
+  'EventAssetCatalogsResource', 'CommentResource', 'EventWorkflowsResource', 'EventWorkflowActionResource',
+  'EventWorkflowDetailsResource', 'ResourcesListResource', 'RolesResource', 'EventAccessResource',
+  'EventPublicationsResource', 'EventSchedulingResource', 'NewEventProcessingResource', 'CaptureAgentsResource',
+  'ConflictCheckResource', 'Language', 'JsHelper', '$sce', '$timeout', 'EventHelperService', 'UploadAssetOptions',
+  'EventUploadAssetResource', 'Table', 'SchedulingHelperService', 'StatisticsReusable', 'Modal', '$translate',
+  function ($scope, Notifications, EventTransactionResource, EventMetadataResource, EventAssetsResource,
+    EventAssetCatalogsResource, CommentResource, EventWorkflowsResource, EventWorkflowActionResource,
+    EventWorkflowDetailsResource, ResourcesListResource, RolesResource, EventAccessResource,
+    EventPublicationsResource, EventSchedulingResource, NewEventProcessingResource, CaptureAgentsResource,
+    ConflictCheckResource, Language, JsHelper, $sce, $timeout, EventHelperService, UploadAssetOptions,
+    EventUploadAssetResource, Table, SchedulingHelperService, StatisticsReusable, Modal, $translate) {
 
-    $translate('EVENTS.SERIES.DETAILS.WARNING_UNSAVED').then(function (translation) {
-      window.unloadConfirmMsg = translation;
+    $translate('WARNING_UNSAVED_CHANGES').then(function (translation) {
+      window.unsavedChangesWarning = translation;
     }).catch(angular.noop);
 
-    var dirtyFieldsPresent = function() {
-      return $scope.metadata.entries.some(
+    var discardChanges = function() {
+      // eslint-disable-next-line
+      return confirm(window.unsavedChangesWarning);
+    };
+
+    var hasUnsavedMetadataChanges = function(catalogs) {
+      // check catalogs for unsaved metadata fields
+      return catalogs.some(
         function(catalog) {
           return catalog.fields.some(function(field) { return field.dirty === true; });
-        }) || $scope.episodeCatalog.fields.some(function(field) {
-        return field.dirty === true;
-      });
+        }
+      );
     };
 
-    var confirmUnsaved = function() {
-      // eslint-disable-next-line
-      return confirm(window.unloadConfirmMsg);
-    };
+    var hasUnsavedChanges = function() {
+      return hasUnsavedMetadataChanges([$scope.episodeCatalog]) || hasUnsavedMetadataChanges($scope.metadata.entries);
+    }
 
     $scope.close = function() {
-      if (dirtyFieldsPresent() === false || confirmUnsaved()) {
+      if (!hasUnsavedChanges() || discardChanges()) {
         Modal.$scope.close();
       }
     };
@@ -295,6 +250,7 @@ angular.module('adminNg.controllers')
               }
               $scope.$emit('NO_ACTIVE_TRANSACTION');
             }
+
             if (priorLocked !== $scope.locked) {
               EventMetadataResource.get({ id: $scope.resourceId }, reinitializeMetadata);
             }
@@ -305,6 +261,10 @@ angular.module('adminNg.controllers')
         reinitializeMetadata = function(metadata) {
           var episodeCatalogIndex;
           angular.forEach(metadata.entries, function (catalog, index) {
+            angular.forEach(catalog.fields, function (field) {
+              field.savedValue = JSON.stringify(field.value); // save copy of original value to see if it changes
+            });
+
             if (catalog.flavor === mainCatalog) {
               $scope.episodeCatalog = catalog;
               episodeCatalogIndex = index;
@@ -329,6 +289,7 @@ angular.module('adminNg.controllers')
           }
 
           checkForActiveTransactions();
+          saveFns = {}; //reset save functions so they use the newly loaded catalogs
         },
         cleanupScopeResources = function() {
           $timeout.cancel($scope.checkForActiveTransactionsTimer);
@@ -795,21 +756,33 @@ angular.module('adminNg.controllers')
     $scope.markMetadataChanged = function (id, callback, catalog) {
       angular.forEach(catalog.fields, function (entry) {
         if (entry.id === id) {
-          entry.dirty = true;
+          // TODO this doesn't work in all cases, notably for dates and the dropdown menus
+          if (JSON.stringify(entry.value) !== entry.savedValue) {
+            entry.dirty = true;
+          } else {
+            entry.dirty = false;
+          }
         }
       });
+
       if (angular.isDefined(callback)) {
         callback();
       }
     };
 
-    $scope.metadataSave = function () {
-      var toSave = $scope.metadata.entries;
-      if (angular.isDefined($scope.episodeCatalog))
-        toSave.push($scope.episodeCatalog);
+    $scope.metadataSaveEnabled = function(catalogs) {
+      if (angular.isUndefined($scope.metadata)) {
+        return false;
+      }
+      if ($scope.metadata.locked)
+        return false;
+      return hasUnsavedMetadataChanges(catalogs);
+    }
+
+    $scope.metadataSave = function (catalogs) {
       EventMetadataResource.save(
         { id: $scope.resourceId },
-        toSave,
+        catalogs,
         reinitializeMetadata
       );
     };

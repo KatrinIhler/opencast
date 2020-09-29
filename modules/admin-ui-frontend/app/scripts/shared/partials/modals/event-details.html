@@ -107,9 +107,9 @@
       <footer>
         <a
           class="submit"
-          ng-class="{disabled: metadata.locked}"
+          ng-class="{disabled: !metadataSaveEnabled()}"
           ng-click="metadataSave()">
-          {{ "EVENTS.EVENTS.DETAILS.METADATA.SAVE" | translate}}
+          {{ "SAVE" | translate}}
         </a>
       </footer>
     </div>
@@ -141,9 +141,9 @@
       <footer>
         <a
           class="submit"
-          ng-class="{disabled: metadata.locked}"
-          ng-click="metadataSave()">
-          {{ "EVENTS.EVENTS.DETAILS.METADATA.SAVE" | translate}}
+          ng-class="{disabled: !metadataSaveEnabled(metadata.entries)}"
+          ng-click="metadataSave(metadata.entries)">
+          {{ "SAVE" | translate}}
         </a>
       </footer>
     </div>
