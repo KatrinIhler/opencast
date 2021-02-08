@@ -22,8 +22,8 @@
 
 angular.module('adminNg.services')
 .factory('NewEventStates', ['NewEventMetadata', 'NewEventMetadataExtended', 'NewEventSource', 'NewEventUploadAsset',
-  'NewEventAccess', 'NewEventProcessing', 'NewEventSummary',
-  function (NewEventMetadata, NewEventMetadataExtended, NewEventSource, NewEventUploadAsset, NewEventAccess,
+  /* 'NewEventAccess', */ 'NewEventProcessing', 'NewEventSummary',
+  function (NewEventMetadata, NewEventMetadataExtended, NewEventSource, NewEventUploadAsset, /* NewEventAccess, */
     NewEventProcessing, NewEventSummary) {
     return {
       get: function () {
@@ -54,11 +54,13 @@ angular.module('adminNg.services')
             // This allows us to reuse the processing functionality in schedule task
             stateController: NewEventProcessing.get()
           },
+          /* SWITCH BEGIN: We don't use this tab
           {
             translation: 'EVENTS.EVENTS.NEW.ACCESS.CAPTION',
             name: 'access',
             stateController: NewEventAccess
           },
+          SWITCH END */
           {
             translation: 'EVENTS.EVENTS.NEW.SUMMARY.CAPTION',
             name: 'summary',

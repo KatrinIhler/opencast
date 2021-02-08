@@ -631,6 +631,57 @@
                     </div>
                   </div>
                 </div>
+              <!-- SWITCH SERIES ACL -->
+              <div class="obj-container">
+                <div class="obj tbl-list">
+                  <header>
+                    Series Access Policies
+                  </header>
+                  <div class="obj-container">
+                    <table class="main-tbl">
+                      <thead>
+                        <tr>
+                          <th translate="EVENTS.EVENTS.DETAILS.ACCESS.ACCESS_POLICY.ROLE">
+                            <!-- Role -->
+                          </th>
+                          <th translate="EVENTS.EVENTS.DETAILS.ACCESS.ACCESS_POLICY.READ" class="fit">
+                            <!-- Read -->
+                          </th>
+                          <th translate="EVENTS.EVENTS.DETAILS.ACCESS.ACCESS_POLICY.WRITE" class="fit">
+                            <!-- Write -->
+                          </th>
+                          <th translate="EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.ADDITIONAL_ACTIONS" class="fit" ng-if="hasActions">
+                            <!-- Additional Actions -->
+                          </th>
+                          <th translate="EVENTS.EVENTS.DETAILS.ACCESS.ACCESS_POLICY.ACTION" ng-if="$root.userIs('ROLE_UI_EVENTS_DETAILS_ACL_EDIT')" class="fit">
+                            <!-- Action -->
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="policy in series_policies track by $index">
+                          <td>
+                            <p>{{policy.role}}</p>
+                          </td>
+                          <td class="fit">
+                            <input type="checkbox" ng-model="policy.read" ng-disabled="true"/>
+                          </td>
+                          <td class="fit">
+                            <input type="checkbox" ng-model="policy.write" ng-disabled="true"/>
+                          </td>
+                          <td class="fit editable" ng-if="hasActions">
+                            <div ng-if="((!$root.userIs('ROLE_UI_SERIES_DETAILS_ACL_EDIT')) || aclLocked)" ng-repeat="customAction in policy.actions.value">
+                              {{ customAction }}
+                            </div>
+                          </td>
+                          <td ng-if="$root.userIs('ROLE_UI_EVENT_DETAILS_ACL_EDIT')" class="fit">
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </li>
         </ul>

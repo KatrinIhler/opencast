@@ -16,6 +16,9 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
     <link type="text/css" href="lib/datepicker/themes/smoothness/jquery-ui-1.10.3.min.css" rel="stylesheet">
+    <!-- codediff CA-820 SWITCH uses a custom ACL editor -->
+    <link rel="stylesheet" href="lib/ng-tags-input/ng-tags-input.min.css" />
+    <!-- codediff END -->
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
   <body ng-cloak ng-controller="ApplicationCtrl" ng-click="bodyClicked()">
@@ -116,7 +119,6 @@
       </div>
     </footer>
 
-
     <!-- build:js(src/main) scripts/bower.js -->
     <!-- bower:js -->
     <script src="../../bower_components/jquery/dist/jquery.js"></script>
@@ -144,6 +146,9 @@
     <script type="text/javascript" src="scripts/lib/chosen.jquery.js"></script>
     <script type="text/javascript" src="scripts/lib/moment-with-locales.js"></script>
     <script src="scripts/lib/angular-chosen.js"></script>
+    <!-- codediff CA-820 SWITCH uses a custom ACL editor -->
+    <script src="scripts/lib/ng-tags-input/ng-tags-input.min.js"></script>
+    <!-- codediff END -->
     <script src="scripts/lib/video-js/video.js"></script>
     <!-- endbuild -->
 
@@ -251,6 +256,9 @@
     <script src="scripts/shared/services/wizards/new-group/states.js"></script>
     <script src="scripts/shared/services/wizards/new-group/metadata.js"></script>
     <script src="scripts/shared/services/wizards/new-series/access.js"></script>
+    <!-- codediff CA-820 SWITCH uses a custom ACL editor -->
+    <script src="scripts/shared/services/wizards/new-series/accessSwitch.js"></script>
+    <!-- codediff CA-820 END-->
     <script src="scripts/shared/services/wizards/new-series/metadata.js"></script>
     <script src="scripts/shared/services/wizards/new-series/metadataExtended.js"></script>
     <script src="scripts/shared/services/wizards/new-series/theme.js"></script>

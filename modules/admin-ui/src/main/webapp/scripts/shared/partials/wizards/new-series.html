@@ -47,6 +47,147 @@
   </div>
 </div>
 
+<!-- codediff CA-820 SWITCH uses a custom ACL editor - this is a custom tab -->
+<div class="modal-content" data-modal-tab-content="access-switch" data-level="1">
+  <div class="modal-body">
+
+    <div data-admin-ng-notifications="" context="series-acl"></div>
+    <div data-admin-ng-notifications="" type="warning" context="series-acl"></div>
+
+    <div class="full-col">
+      <ul>
+        <li>
+          <div class="obj list-obj">
+                        <header class="no-expand" translate="SWITCHCAST.ACL.CAPTION">
+              <!-- Title -->
+            </header>
+            <div class="obj-container">
+                            <div class="obj tbl-list">
+
+                                <table class="main-tbl">
+                                <thead>
+                                    <tr>
+                                        <th translate="SWITCHCAST.ACL.TEMPLATE.TITLE">
+                                            <!-- Templates -->
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="obj-container padded">
+                                              <div class="row" style="height:60px">
+                                                <div style="float:left;padding-top:8px;">
+                                                    <select chosen
+                                                        id="access-switch-select"
+                                                        data-width="'250px'"
+                                                        data-disable-search-threshold="8"
+                                                        data-search_contains="true"
+                                                        tabindex="1"
+                                                        focushere
+                                                        ng-change="wizard.step.changeBaseAcl(false)"
+                                                        ng-model="wizard.step.ud.aclSelected.template"
+                                                        ng-options="acl.name | translate for acl in wizard.step.acls"
+                                                        placeholder-text-single="'{{'SWITCHCAST.ACL.SELECT_TEMPLATE' | translate}}'"
+                                                        data-placeholder="{{ 'EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.LABEL' | translate }}"
+                                                        no-results-text="'{{ 'EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.EMPTY' | translate }}'"
+                                                    >
+                                                        <option value=""></option>
+                                                    </select>
+                                                </div>
+                                                <div style="float:left;padding-left:25px;">
+                                                    <ul>
+                                                        <li><label title="{{ 'SWITCHCAST.ACL.ACTION.DOWNLOAD.DESCRIPTION' | translate }}"><input ng-change="wizard.step.changeBaseAcl(false)" ng-model="wizard.step.ud.allowDownload" type="checkbox"><span translate="SWITCHCAST.ACL.ACTION.DOWNLOAD.NAME"/></label></li>
+                                                        <li><label title="{{ 'SWITCHCAST.ACL.ACTION.ANNOTATE.DESCRIPTION' | translate }}"><input ng-change="wizard.step.changeBaseAcl(false)" ng-model="wizard.step.ud.allowAnnotate" type="checkbox"><span translate="SWITCHCAST.ACL.ACTION.ANNOTATE.NAME"/></label></li>
+                                                    </ul>
+                                                </div>
+                                              </div>
+                                              <div class="row" style="height:60px">
+                                                <p style="padding-left:5px;" ng-if="wizard.step.ud.aclSelected.template.description">
+                                                    {{ wizard.step.ud.aclSelected.template.description | translate }}
+                                                </p>
+                                              </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="obj-container">
+              <div class="obj tbl-list">
+                                <header translate="SWITCHCAST.ACL.ACTION.TITLE">
+                                    <!-- Details -->
+                                </header>
+                                <div class="obj-container">
+                                    <table class="main-tbl">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <p translate="SWITCHCAST.ACL.ACTION.DESCRIPTION"></p>
+                                                    <tags-input
+                                                        ng-model="wizard.step.tags"
+                                                        display-property="name"
+                                                        on-tag-added="wizard.step.addUserTag($tag)"
+                                                        on-tag-removed="wizard.step.removeUserTag($tag)"
+                                                        replace-spaces-with-dashes="false"
+                                                        add-from-autocomplete-only="true"
+                                                        placeholder="{{'SWITCHCAST.ACL.USER_NG_INPUT' | translate}}"
+                                                    >
+                                                        <auto-complete
+                                                            source="wizard.step.loadTags($query)"
+                                                            load-on-focus="true"
+                                                            load-on-empty="true"
+                                                            max-results-to-show="32"
+                                                            min-length="1"
+                                                            select-first-match="true"
+                                                        ></auto-complete>
+                                                    </tags-input>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<style>
+    .tag-item {
+        color: #fff;
+        line-height: 24px !important;
+        background: #378DD4 !important;
+        border-color: #378DD4 !important;
+    }
+
+    .suggestion-item {
+        line-height: normal !important;
+    }
+
+    .suggestion-item{
+        font-size: 13px !important;
+        color: #666666 !important;
+    }
+
+    .suggestion-item:hover {
+        background: #378DD4 !important;
+        color: #fff !important;
+    }
+
+    .remove-button {
+        color: #fff !important;
+    }
+
+
+</style>
+<!-- codediff END -->
+
+<!-- codediff CA-820 SWITCH uses a custom ACL editor - we do not use the Opencast ACL editor here
 <div class="modal-content" data-modal-tab-content="access" data-level="1">
   <div class="modal-body">
 
@@ -58,17 +199,15 @@
         <li>
           <div class="obj list-obj">
             <header class="no-expand" translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.TITLE">
-              <!-- Title -->
+              <!-- Title --> <!--
             </header>
             <div class="obj-container">
-
               <div class="obj tbl-list">
-
                 <table class="main-tbl">
                   <thead>
                     <tr>
                       <th translate="EVENTS.SERIES.NEW.ACCESS.TEMPLATES.TITLE">
-                        <!-- Templates -->
+                        <!-- Templates --> <!--
                       </th>
                     </tr>
                   </thead>
@@ -94,30 +233,29 @@
                 </table>
               </div>
             </div>
-
             <div class="obj-container">
               <div class="obj tbl-list">
                 <header translate="EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.DETAILS">
-                  <!-- Details -->
+                  <!-- Details --> <!--
                 </header>
                 <div class="obj-container">
                   <table class="main-tbl">
                     <thead>
                       <tr>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ROLE">
-                          <!-- Role -->
+                          <!-- Role --><!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.READ" class="fit">
-                          <!-- Read -->
+                          <!-- Read --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.WRITE" class="fit">
-                          <!-- Write -->
+                          <!-- Write --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ADDITIONAL_ACTIONS" class="fit" ng-if="wizard.step.hasActions">
-                          <!-- Additional Actions -->
+                          <!-- Additional Actions --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ACTION" class="fit">
-                          <!-- Action -->
+                          <!-- Action --> <!--
                         </th>
                       </tr>
                     </thead>
@@ -150,13 +288,13 @@
                 </div>
               </div>
             </div>
-
           </div>
         </li>
       </ul>
     </div>
   </div>
 </div>
+codediff END -->
 
 <div class="modal-content" data-modal-tab-content="theme" data-level="1">
   <div class="modal-body">
@@ -230,19 +368,20 @@
         <header class="no-expand" translate="EVENTS.SERIES.NEW.ACCESS.CAPTION"><!-- Caption --></header>
         <div class="obj-container">
           <table class="main-tbl">
+            <!-- codediff CA-820 SWITCH uses a custom ACL editor - We don't show roles to users
             <thead>
               <tr>
                 <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ROLE">
-                  <!-- Role -->
+                  Role
                 </th>
                 <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.READ" class="fit">
-                  <!-- Read -->
+                  Read
                 </th>
                 <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.WRITE" class="fit">
-                  <!-- Write -->
+                  Write
                 </th>
                 <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ADDITIONAL_ACTIONS" class="fit" ng-if="wizard.getStateControllerByName('access').hasActions">
-                  <!-- Additional Actions -->
+                  Additional Actions
                 </th>
               </tr>
             </thead>
@@ -252,6 +391,13 @@
               <td class="fit"><input type="checkbox" disabled ng-model="policy.write"/></td>
               <td class="fit" ng-if="wizard.getStateControllerByName('access').hasActions"><div ng-repeat="customAction in policy.actions.value">{{ customAction }}</div></td>
             </tr>
+            codediff END -->
+            <!-- codediff CA-820 SWITCH uses a custom ACL editor - Show the SWITCH ACL template in the summary -->
+            <tr>
+              <td>{{ 'EVENTS.SERIES.NEW.ACCESS.TEMPLATES.TITLE' | translate }}</td>
+              <td>{{ wizard.getStateControllerByName('access-switch').ud.aclSelected.template['name'] | translate }}</td>
+            </tr>
+            <!-- codediff END -->
           </table>
         </div>
       </div>

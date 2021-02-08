@@ -17,8 +17,9 @@ describe('New Event Controller', function () {
         Table = _Table_;
         Notifications = _Notifications_;
 
+        /* SWITCH: We don't expect this request because of the changes related to SWITCH ACL Editor
         $httpBackend.expectGET('/admin-ng/resources/ROLES.json?filter=role_target:ACL&limit=100&offset=0').respond('{"ROLE_ANONYMOUS": "ROLE_ANONYMOUS"}');
-
+        */
         $parentScope = $rootScope.$new();
         $scope = $parentScope.$new();
         $controller('NewEventCtrl', {$scope: $scope});
@@ -36,6 +37,9 @@ describe('New Event Controller', function () {
     describe('#submit', function () {
         beforeEach(function () {
             jasmine.getJSONFixtures().fixturesPath = 'base/app/GET';
+            // codediff CA-820 SWITCH uses a custom ACL editor
+            $httpBackend.whenGET('/admin-ng/resources/ROLES.json?filter=role_target:ACL&limit=100&offset=0').respond('{}');
+            // codediff END
             $httpBackend.whenGET('/admin-ng/event/new/metadata').respond('{}');
             $httpBackend.whenGET('/admin-ng/capture-agents/agents.json?inputs=true')
                 .respond(JSON.stringify(getJSONFixture('admin-ng/capture-agents/agents.json')));

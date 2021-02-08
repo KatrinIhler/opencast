@@ -34,6 +34,15 @@
        with-role="ROLE_UI_SERIES_DETAILS_ACL_VIEW">
       <!-- Access Policy -->
     </a>
+    <!-- codediff CA-820 SWITCH uses a custom ACL editor -->
+    <a ng-click="openTab('permissions-switch')"
+       data-modal-tab="permissions-switch"
+       ng-class="{ active: tab == 'permissions-switch' }"
+       translate="EVENTS.SERIES.DETAILS.TABS.PERMISSIONS"
+       with-role="ROLE_UI_SERIES_DETAILS_SWITCH_ACL_VIEW">
+      <!-- Access Policy -->
+    </a>
+    <!-- codediff END -->
     <a ng-click="openTab('theme')"
        data-modal-tab="theme"
        ng-class="{ active: tab == 'theme' }"
@@ -259,11 +268,13 @@
               </div>
               <footer ng-if="updateMode === 'optional'">
                 <!-- Button to remove all episode ACLs to ensure only the series ACL applies -->
-                <a ng-click="accessSave(true)"
+                <!-- codediff CA-820 SWITCH uses a custom ACL editor: Additional parameter in accessSave call -->
+                <a ng-click="accessSave(false, true)"
                    class="submit"
                    ng-class="{disabled: !validAcl}"
                    translate="EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.REPLACE_EVENT_ACLS"
                    title="{{'EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.REPLACE_EVENT_ACLS_HINT' | translate}}">
+                  <!-- codediff END -->
                   <!-- Submit -->
                 </a>
               </footer>
@@ -273,6 +284,153 @@
       </div>
     </div>
   </div>
+
+  <!-- codediff CA-820 SWITCH uses a custom ACL editor -->
+  <div class="modal-content" data-modal-tab-content="permissions-switch" data-level="1">
+    <p class="tab-desc"></p>
+    <div class="modal-body">
+
+      <div data-admin-ng-notifications="" context="series-acl"></div>
+      <div data-admin-ng-notifications="" type="warning" show="metadata.locked" message="{{ metadata.locked }}"></div>
+      <div data-admin-ng-notifications="" type="warning" context="series-acl-{{resourceId}}"></div>
+
+      <div class="full-col">
+        <ul>
+          <li>
+            <div class="obj list-obj">
+              <header translate="SWITCHCAST.ACL.CAPTION"></header>
+              <div class="obj-container">
+                <div class="obj tbl-list">
+                  <table class="main-tbl" ng-if="$root.userIs('ROLE_UI_SERIES_DETAILS_SWITCH_ACL_VIEW')">
+                    <thead>
+                    <tr>
+                      <th translate="SWITCHCAST.ACL.TEMPLATE.TITLE">
+                        <!-- Templates -->
+                      </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                      <td>
+                        <div class="obj-container padded">
+                          <div class="row" style="height:60px">
+                            <div style="float:left;padding-top:8px;">
+                              <select chosen
+                                      ng-disabled="(tab == 'permissions-switch') && (!$root.userIs('ROLE_UI_SERIES_DETAILS_SWITCH_ACL_EDIT') || aclLocked)"
+                                      data-width="'250px'"
+                                      data-disable-search-threshold="8"
+                                      data-search_contains="true"
+                                      ng-change="changeBaseAclSwitch()"
+                                      ng-model="aclSelected.template"
+                                      ng-options="acl.name | translate for acl in aclsSwitch"
+                                      placeholder-text-single="'{{'SWITCHCAST.ACL.SELECT_TEMPLATE' | translate}}'"
+                                      data-placeholder="{{ 'EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.LABEL' | translate }}"
+                                      no-results-text="'{{ 'EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.EMPTY' | translate }}'">
+                                <option value=""></option>
+                              </select>
+                            </div>
+                            <div style="float:left;padding-left:25px;">
+                              <ul>
+                                <li>
+                                  <label title="{{ 'SWITCHCAST.ACL.ACTION.DOWNLOAD.DESCRIPTION' | translate }}">
+                                    <input ng-change="changeBaseAclSwitch()" ng-model="switchCheckboxVals.allowDownload" type="checkbox" ng-disabled="(tab == 'permissions-switch') && (!$root.userIs('ROLE_UI_SERIES_DETAILS_SWITCH_ACL_EDIT') || aclLocked)">
+                                    <span translate="SWITCHCAST.ACL.ACTION.DOWNLOAD.NAME"/>
+                                  </label>
+                                </li>
+                                <li>
+                                  <label title="{{ 'SWITCHCAST.ACL.ACTION.ANNOTATE.DESCRIPTION' | translate }}">
+                                    <input ng-change="changeBaseAclSwitch()" ng-model="switchCheckboxVals.allowAnnotate" type="checkbox" ng-disabled="(tab == 'permissions-switch') && (!$root.userIs('ROLE_UI_SERIES_DETAILS_SWITCH_ACL_EDIT') || aclLocked)">
+                                    <span translate="SWITCHCAST.ACL.ACTION.ANNOTATE.NAME"/>
+                                  </label>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          <div class="row" style="height:60px">
+                            <p style="padding-left:5px;" ng-if="!isCustomTemplate">
+                              {{ aclSelected.template.description | translate }}
+                            </p>
+                            <p style="padding-left:5px;" ng-if="isCustomTemplate" translate="SWITCHCAST.ACL.TEMPLATE.CUSTOM.DESCRIPTION">
+                              <!-- Description -->
+                            </p>
+                          </div>
+                        </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="obj-container">
+                <div class="obj tbl-list">
+                  <header translate="SWITCHCAST.ACL.ACTION.TITLE">
+                    <!-- Details -->
+                  </header>
+                  <div class="obj-container">
+                    <table class="main-tbl">
+                      <tbody>
+                      <tr>
+                        <td>
+                          <p translate="SWITCHCAST.ACL.ACTION.DESCRIPTION"></p>
+                          <tags-input
+                            ng-disabled="(tab == 'permissions-switch') && (!$root.userIs('ROLE_UI_SERIES_DETAILS_SWITCH_ACL_EDIT') || aclLocked || aclRequestPending)"
+                            ng-model="tags"
+                            key-property="value"
+                            display-property="name"
+                            on-tag-added="addUserTag($tag)"
+                            on-tag-removed="removeUserTag($tag)"
+                            replace-spaces-with-dashes="false"
+                            add-from-autocomplete-only="true"
+                            placeholder="{{'SWITCHCAST.ACL.USER_NG_INPUT' | translate}}"
+                          >
+                            <auto-complete
+                              ng-show="!aclRequestPending"
+                              source="loadTags($query)"
+                              load-on-focus="true"
+                              load-on-empty="true"
+                              max-results-to-show="32"
+                              min-length="1"
+                              select-first-match="true"
+                            ></auto-complete>
+                          </tags-input>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <style>
+            .tag-item {
+                color: #fff;
+                line-height: 24px !important;
+                background: #378DD4 !important;
+                border-color: #378DD4 !important;
+            }
+
+            .suggestion-item {
+                line-height: normal !important;
+            }
+
+            .suggestion-item{
+                font-size: 13px !important;
+                color: #666666 !important;
+            }
+
+            .suggestion-item:hover {
+                background: #378DD4 !important;
+                color: #fff !important;
+            }
+
+            .remove-button {
+                color: #fff !important;
+            }
+        </style>
+  </div>
+    <!-- codediff END -->
 
   <!-- Statistics view -->
   <div class="modal-content" data-modal-tab-content="statistics">

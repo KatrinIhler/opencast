@@ -56,6 +56,24 @@ angular.module('adminNg.controllers')
       } else if ($scope.states[2].name === 'access') {
         access = $scope.states[2].stateController.ud;
       }
+      // codediff CA-820 SWITCH uses a custom ACL editor
+      if ($scope.states[0].name === 'access-switch') {
+        access = $scope.states[0].stateController.ud;
+      } else if ($scope.states[1].name === 'access-switch') {
+        access = $scope.states[1].stateController.ud;
+      } else if ($scope.states[2].name === 'access-switch') {
+        access = $scope.states[2].stateController.ud;
+      } else if ($scope.states[3].name === 'access-switch') {
+        access = $scope.states[3].stateController.ud;
+      }
+      // codediff END
+
+      // assemble the access
+      if ($scope.states[1].name === 'access') {
+        access = $scope.states[1].stateController.ud;
+      } else if ($scope.states[2].name === 'access') {
+        access = $scope.states[2].stateController.ud;
+      }
 
       ace = [];
       angular.forEach(access.policies, function (policy) {

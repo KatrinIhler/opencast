@@ -24,6 +24,9 @@
 
 angular.module('LocalStorageModule').value('prefix', 'adminNg');
 angular.module('adminNg', [
+  // codediff CA-820 SWITCH uses a custom ACL editor
+  'ngTagsInput',
+  // codediff END
   'angularFileUpload',
   'pascalprecht.translate',
   'localytics.directives',

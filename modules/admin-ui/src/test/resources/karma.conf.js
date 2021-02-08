@@ -24,6 +24,9 @@ module.exports = function (config) {
             '../../../bower_components/angular-mocks/angular-mocks.js',
             // endbower
             '../../main/webapp/scripts/lib/chosen.jquery.js',
+            // codediff CA-820 SWITCH uses a custom ACL editor - uses the ng-tags library
+            '../../main/webapp/scripts/lib/ng-tags-input/ng-tags-input.min.js',
+            // codediff END
             '../../main/webapp/scripts/lib/angular-chosen.js',
             '../../main/webapp/scripts/lib/underscore-1.5.2.js',
             '../../main/webapp/scripts/lib/video-js/video.js',

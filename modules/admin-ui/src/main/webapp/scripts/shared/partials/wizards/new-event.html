@@ -155,6 +155,7 @@
         <header translate="EVENTS.EVENTS.NEW.SOURCE.DATE_TIME.CAPTION"><!-- Date / Time --></header>
         <div class="obj-container">
           <table class="main-tbl">
+            <!-- codediff CA-447 Don't show timezone in UI as this is more confusing than actually helpful
             <tr>
               <td>{{ 'EVENTS.EVENTS.NEW.SOURCE.DATE_TIME.TIMEZONE' | translate }}</td>
               <td>{{ wizard.step.tz }}</td>
@@ -285,10 +286,12 @@
         <header translate="EVENTS.EVENTS.NEW.SOURCE.DATE_TIME.CAPTION"><!-- Date / Time --></header>
         <div class="obj-container">
           <table class="main-tbl">
+            <!-- codediff CA-447 Don't show timezone in UI as this is more confusing than actually helpful
             <tr>
               <td>{{ 'EVENTS.EVENTS.NEW.SOURCE.DATE_TIME.TIMEZONE' | translate }}</td>
               <td>{{ wizard.step.tz }}</td>
             </tr>
+            codediff END -->
             <tr>
               <td>{{ 'EVENTS.EVENTS.NEW.SOURCE.DATE_TIME.START_DATE' | translate }} <i class="required">*</i></td>
               <td>
@@ -483,6 +486,7 @@
   </div>
 </div>
 
+<!-- SWITCH BEGIN: We don't use this dialog >
 <div class="modal-content" data-modal-tab-content="access" data-level="1">
   <div class="modal-body">
     <div class="full-col">
@@ -491,11 +495,11 @@
         <li>
           <div class="obj list-obj">
             <header class="no-expand" translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.TITLE">
-              <!-- Title -->
+              <!-- Title --> <!--
             </header>
             <div class="obj-container">
               <p translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.DESCRIPTION">
-              <!-- Description -->
+              <!-- Description --> <!--
               </p>
               <div class="obj tbl-list">
 
@@ -503,7 +507,7 @@
                   <thead>
                     <tr>
                       <th translate="EVENTS.SERIES.NEW.ACCESS.TEMPLATES.TITLE">
-                        <!-- Templates -->
+                        <!-- Templates --> <!--
                       </th>
                     </tr>
                   </thead>
@@ -529,32 +533,33 @@
                   </tbody>
                 </table>
               </div>
+
             </div>
 
             <div class="obj-container">
               <div class="obj tbl-list">
                 <header translate="EVENTS.SERIES.DETAILS.ACCESS.ACCESS_POLICY.DETAILS">
-                  <!-- Details -->
+                  <!-- Details --> <!--
                 </header>
                 <div class="obj-container">
                   <table class="main-tbl">
                     <thead>
                       <tr>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ROLE">
-                          <!-- Role -->
+                          <!-- Role --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.READ" class="fit">
-                          <!-- Read -->
+                          <!-- Read --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.WRITE" class="fit">
-                          <!-- Write -->
+                          <!-- Write --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ADDITIONAL_ACTIONS"
                             class="fit" ng-if="wizard.step.hasActions">
-                          <!-- Additional Actions -->
+                          <!-- Additional Actions --> <!--
                         </th>
                         <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ACTION" class="fit">
-                          <!-- Action -->
+                          <!-- Action --> <!--
                         </th>
                       </tr>
                     </thead>
@@ -591,13 +596,13 @@
                 </div>
               </div>
             </div>
-
           </div>
         </li>
       </ul>
     </div>
   </div>
 </div>
+SWITCH END -->
 
 <div class="modal-content" data-modal-tab-content="summary" data-level="1">
   <div class="modal-body">
@@ -723,23 +728,24 @@
           </tr>
         </table>
       </div>
+      <!-- SWITCH BEGIN: We don't use access tab here, so no summary possible
       <div class="obj tbl-list">
-        <header class="no-expand" translate="EVENTS.EVENTS.NEW.ACCESS.CAPTION" ><!-- Access Policy --></header>
+        <header class="no-expand" translate="EVENTS.EVENTS.NEW.ACCESS.CAPTION" ><!-- Access Policy --> <!--</header>
         <table class="main-tbl">
           <thead>
             <tr>
               <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ROLE" class="fit">
-                <!-- Role -->
+                <!-- Role --> <!--
               </th>
               <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.READ" class="fit">
-                <!-- Read -->
+                <!-- Read --> <!--
               </th>
               <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.WRITE" class="fit">
-                <!-- Write -->
+                <!-- Write --> <!--
               </th>
               <th translate="EVENTS.SERIES.NEW.ACCESS.ACCESS_POLICY.ADDITIONAL_ACTIONS"
                   class="fit" ng-if="wizard.getStateControllerByName('access').hasActions">
-                <!-- Additional Actions -->
+                <!-- Additional Actions --> <!--
               </th>
             </tr>
           </thead>
@@ -753,6 +759,7 @@
           </tr>
         </table>
       </div>
+      END SWITCH -->
     </div>
   </div>
 </div>

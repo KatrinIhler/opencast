@@ -107,6 +107,7 @@ angular.module('adminNg.services')
           me.notificationRules = undefined;
         }
 
+        /* codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
         if (!me.hasRights) {
           if (!angular.isUndefined(me.notificationRights)) {
             Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
@@ -116,6 +117,7 @@ angular.module('adminNg.services')
           Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
           me.notificationRights = undefined;
         }
+        codediff END */
 
         $timeout(function () {
           checkNotification();
@@ -215,7 +217,10 @@ angular.module('adminNg.services')
         });
 
         me.unvalidRule = !rulesValid;
-        me.hasRights = hasRights;
+        // codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
+        // me.hasRights = hasRights;
+        me.hasRights = true;
+        // codediff END
 
         return rulesValid && hasRights;
       };

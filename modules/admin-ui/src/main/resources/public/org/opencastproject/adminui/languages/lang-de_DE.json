@@ -1,4 +1,54 @@
 {
+   "SWITCHCAST": {
+     "ACL":{
+       "USER_NG_INPUT": "Person hinzufügen...",
+       "SELECT_TEMPLATE": "Vorlage wählen...",
+       "CAPTION": "Zugriffsrechte",
+       "ACTION": {
+         "TITLE": "Personen, welche diese Serie bearbeiten können",
+         "DESCRIPTION": "Selektieren Sie die Personen, welche die Aufzeichnungen in dieser Serie auch bearbeiten können",
+         "DOWNLOAD" : {
+           "NAME": "Download",
+           "DESCRIPTION" : "Benutzer können die Videodateien der Aufzeichnungen in dieser Serie herunterladen"
+         },
+         "ANNOTATE": {
+           "NAME": "Annotate",
+           "DESCRIPTION": "Benutzer können die Aufzeichnungen dieser Serie annotieren"
+         }
+       },
+       "TEMPLATE": {
+         "TITLE": "Sichtbarkeit der Aufzeichnungen",
+         "PUBLIC": {
+           "NAME": "Öffentlich",
+           "DESCRIPTION": "Alle Aufzeichnungen in dieser Serie können von allen Leuten gefunden und angeschaut werden"
+         },
+         "FEDERATION": {
+           "NAME": "Federation",
+           "DESCRIPTION": "Eine Benutzer muss sich mit SWITCHaai anmelden (Unabhängig von der Universität), um die Aufzeichnungen in dieser Serie anschauen zu können"
+         },
+         "ORGANIZATION": {
+           "NAME": "Organisation",
+           "DESCRIPTION": "Nur Benutzer von Ihrer Organisation, welche sich mit SWITCHaai angemeldet haben, können die Aufzeichnungen in dieser Serie anschauen"
+         },
+         "PRIVATE": {
+           "NAME": "Privat",
+           "DESCRIPTION": "Nur die in der Liste unten definierten Personen können die Aufzeichnungen in dieser Serie anschauen. Achtung: Diese Personen können die Aufzeichnungen auch bearbeiten (z.B. schneiden, löschen, etc.)"
+         },
+         "LMS": {
+           "NAME": "Learning Management System",
+           "DESCRIPTION": "Die Zugriffsrechte werden durch ILIAS, Moodle oder OLAT gesteuert"
+         },
+         "HIDDEN": {
+           "NAME": "Nicht suchbar (öffentlich)",
+           "DESCRIPTION": "Alle Aufzeichnungen können nicht mit Suchmaschinen (z.B. Google, Bing, etc.) gefunden werden. Jedoch kann jede Person, die den Link zu den einzelnen Aufzeichnungen kennt, die Aufzeichnungen anschauen ohne sich anmelden zu müssen"
+         },
+         "CUSTOM": {
+           "NAME": "Unbekannt",
+           "DESCRIPTION": "Die Zugriffsrechte dieser Serie stimmen nicht mit einer der vordefinierten Vorlagen überein"
+         }
+       }
+     }
+   },
    "MATTERHORN": "Opencast",
    "NAV_HOME": "Zur Startseite",
    "NAV_ABOUT": "Über",

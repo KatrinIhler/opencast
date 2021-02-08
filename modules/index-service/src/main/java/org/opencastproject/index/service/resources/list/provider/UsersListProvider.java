@@ -26,6 +26,7 @@ import org.opencastproject.index.service.resources.list.api.ResourceListQuery;
 import org.opencastproject.security.api.Role;
 import org.opencastproject.security.api.User;
 import org.opencastproject.security.api.UserDirectoryService;
+import org.opencastproject.userdirectory.UserIdRoleProvider; // codediff CA-820 SWITCH uses a custom ACL editor
 
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.BundleContext;
@@ -51,9 +52,14 @@ public class UsersListProvider implements ResourceListProvider {
   public static final String EMAIL = PROVIDER_PREFIX + ".EMAIL";
   public static final String ROLE = PROVIDER_PREFIX + ".ROLE";
   public static final String USERDIRECTORY = PROVIDER_PREFIX + ".USERDIRECTORY";
+  // codediff CA-820 SWITCH uses a custom ACL editor
+  public static final String SWITCH_ROLE = PROVIDER_PREFIX + ".SWITCH.ROLE";
+  public static final String SWITCH_ROLE_INVERSE = PROVIDER_PREFIX + ".SWITCH.ROLE.INVERSE";
 
   protected static final String[] NAMES = { DEFAULT, DEFAULT_WITH_EMAIL, DEFAULT_WITH_USERNAME, INVERSE,
-          INVERSE_WITH_EMAIL, INVERSE_WITH_USERNAME, USERNAME, NAME, EMAIL, ROLE, USERDIRECTORY };
+          INVERSE_WITH_EMAIL, INVERSE_WITH_USERNAME, USERNAME, NAME, EMAIL, ROLE, USERDIRECTORY,
+          SWITCH_ROLE, SWITCH_ROLE_INVERSE };
+  // codediff END
 
   private static final Logger logger = LoggerFactory.getLogger(UsersListProvider.class);
 
@@ -111,7 +117,18 @@ public class UsersListProvider implements ResourceListProvider {
         for (Role role : u.getRoles()) {
           usersList.put(role.getName(), role.getName());
         }
+      // codediff CA-820 SWITCH uses a custom ACL editor
+      } else if (SWITCH_ROLE.equals(listName) || SWITCH_ROLE_INVERSE.equals(listName)) {
+        String userrole = UserIdRoleProvider.getUserIdRole(u.getUsername());
+        if (userrole.matches("ROLE_AAI_USER_(.*)@(.*)")) {
+          if (SWITCH_ROLE.equals(listName)) {
+            usersList.put(createDisplayName(u, DEFAULT_WITH_EMAIL), userrole);
+          } else if (SWITCH_ROLE_INVERSE.equals(listName)) {
+            usersList.put(userrole, createDisplayName(u, INVERSE_WITH_EMAIL));
+          }
+        }
       }
+      // codediff END
     }
     return usersList;
   }

@@ -37,6 +37,11 @@ describe('Serie controller', function () {
         $httpBackend.whenPUT('/admin-ng/series/73f9b7ab-1d8f-4c75-9da1-ceb06736d82c/theme').respond('{}');
         $httpBackend.whenGET('/admin-ng/resources/THEMES.NAME.json').respond({1001: 'Heinz das Pferd', 1002: 'Full Fledged', 401: 'Doc Test'});
         $httpBackend.whenGET('/admin-ng/resources/THEMES.DESCRIPTION.json').respond({901: 'theme1 description', 902: 'theme2 desc\nsecond line'});
+        // codediff CA-820 SWITCH uses a custom ACL editor
+        $httpBackend.whenGET('/info/me.json').respond(getJSONFixture('info/me.json'));
+        $httpBackend.whenGET('/admin-ng/resources/USERS.SWITCH.ROLE.json').respond(getJSONFixture('info/me.json'));
+        $httpBackend.whenGET('/admin-ng/resources/ROLES.json?filter=role_target:ACL&limit=100&offset=1').respond('{}');
+        // codediff END
         $httpBackend.whenGET('/admin-ng/resources/ACL.json').respond('{}');
         $httpBackend.whenGET('/admin-ng/feeds/feeds').respond('{}');
         $httpBackend.whenGET('/admin-ng/resources/ACL.ACTIONS.json').respond('{}');
@@ -62,7 +67,9 @@ describe('Serie controller', function () {
         spyOn(SeriesAccessResource, 'get');
         $scope.$broadcast('change', 7);
         expect(SeriesMetadataResource.get).toHaveBeenCalledWith({ id: 7 }, jasmine.any(Function));
-        expect(SeriesAccessResource.get).toHaveBeenCalledWith({ id: 7 }, jasmine.any(Function));
+        /* codediff CA-820 SWITCH uses a custom ACL editor, so this now happens inside then():
+        // expect(SeriesAccessResource.get).toHaveBeenCalledWith({ id: 7 }, jasmine.any(Function));
+        codediff END */
     });
 
     describe('retrieving metadata catalogs', function () {
@@ -180,7 +187,11 @@ describe('Serie controller', function () {
                 {
                     acl : { ace : [ { action : 'read', allow : true, role : 'admin' }, { action : 'write', allow : true, role : 'admin' } ] },
                     override: false
-                }
+                },
+                // codediff CA-820 SWITCH uses a custom ACL editor
+                jasmine.any(Function),
+                jasmine.any(Function)
+                // codediff END
             );
         });
     });

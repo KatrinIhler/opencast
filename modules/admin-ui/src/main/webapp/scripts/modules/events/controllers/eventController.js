@@ -26,12 +26,14 @@ angular.module('adminNg.controllers')
   '$scope', 'Notifications', 'EventTransactionResource', 'EventMetadataResource', 'EventAssetsResource',
   'EventAssetCatalogsResource', 'CommentResource', 'EventWorkflowsResource', 'EventWorkflowActionResource',
   'EventWorkflowDetailsResource', 'ResourcesListResource', 'UserRolesResource', 'EventAccessResource',
+  'SeriesAccessResource', //SWITCH
   'EventPublicationsResource', 'EventSchedulingResource','NewEventProcessingResource', 'CaptureAgentsResource',
   'ConflictCheckResource', 'Language', 'JsHelper', '$sce', '$timeout', 'EventHelperService', 'UploadAssetOptions',
   'EventUploadAssetResource', 'Table', 'SchedulingHelperService', 'StatisticsReusable',
   function ($scope, Notifications, EventTransactionResource, EventMetadataResource, EventAssetsResource,
     EventAssetCatalogsResource, CommentResource, EventWorkflowsResource, EventWorkflowActionResource,
     EventWorkflowDetailsResource, ResourcesListResource, UserRolesResource, EventAccessResource,
+    SeriesAccessResource, // SWITCH
     EventPublicationsResource, EventSchedulingResource, NewEventProcessingResource, CaptureAgentsResource,
     ConflictCheckResource, Language, JsHelper, $sce, $timeout, EventHelperService, UploadAssetOptions,
     EventUploadAssetResource, Table, SchedulingHelperService, StatisticsReusable) {
@@ -166,10 +168,29 @@ angular.module('adminNg.controllers')
                 // trigger any UI changes
                 el.trigger('updateConfigUI');
               }
-
             });
             me.loadingWorkflow = false;
           }
+        },
+        changeSeriesPolicies = function (access) {
+          var newPolicies = {};
+          angular.forEach(access, function (acl) {
+            var policy = newPolicies[acl.role];
+
+            if (angular.isUndefined(policy)) {
+              newPolicies[acl.role] = createPolicy(acl.role);
+            }
+            if (acl.action === 'read' || acl.action === 'write') {
+              newPolicies[acl.role][acl.action] = acl.allow;
+            } else if (acl.allow === true || acl.allow === 'true'){
+              newPolicies[acl.role].actions.value.push(acl.action);
+            }
+          });
+
+          $scope.series_policies = [];
+          angular.forEach(newPolicies, function (policy) {
+            $scope.series_policies.push(policy);
+          });
         },
         changePolicies = function (access, loading) {
           var newPolicies = {};
@@ -295,6 +316,7 @@ angular.module('adminNg.controllers')
           $scope.metadata =  EventMetadataResource.get({ id: id }, function (metadata) {
             var episodeCatalogIndex;
             angular.forEach(metadata.entries, function (catalog, index) {
+              var series_id;
               if (catalog.flavor === mainCatalog) {
                 $scope.episodeCatalog = catalog;
                 episodeCatalogIndex = index;
@@ -303,12 +325,22 @@ angular.module('adminNg.controllers')
                 angular.forEach(catalog.fields, function (entry) {
                   if (entry.id === 'title' && angular.isString(entry.value)) {
                     $scope.titleParams = { resourceId: entry.value.substring(0,70) };
+                  } else if (entry.id === 'isPartOf' && angular.isString(entry.value)) {
+                    series_id = entry.value;
                   }
                   if (keepGoing && entry.locked) {
                     metadata.locked = entry.locked;
                     keepGoing = false;
                   }
                   entry.tabindex = tabindex ++;
+                });
+              }
+              if (angular.isString(series_id) && series_id) {
+                $scope.series_access =  SeriesAccessResource.get({id: series_id}, function (data) {
+                  if (angular.isDefined(data.series_access)) {
+                    var json = angular.fromJson(data.series_access.acl);
+                    changeSeriesPolicies(json.acl.ace);
+                  }
                 });
               }
             });
@@ -379,8 +411,12 @@ angular.module('adminNg.controllers')
             });
           };
           // <==========================
+          // codediff CA-820 SWITCH uses a custom ACL editor
+          // We don't use ACL templates, so let's don't load them to save a HTTP GET request ;-)
+          // $scope.acls = ResourcesListResource.get({ resource: 'ACL' });
+          $scope.acls = {};
+          // codediff END
 
-          $scope.acls = ResourcesListResource.get({ resource: 'ACL' });
           $scope.actions = {};
           $scope.hasActions = false;
           ResourcesListResource.get({ resource: 'ACL.ACTIONS'}, function(data) {
@@ -621,6 +657,8 @@ angular.module('adminNg.controllers')
 
     $scope.policies = [];
     $scope.baseAcl = {};
+    $scope.series_policies = [];
+    $scope.series_id = null;
 
     $scope.changeBaseAcl = function () {
       $scope.baseAcl = EventAccessResource.getManagedAcl({id: this.baseAclId}, function () {
@@ -888,7 +926,10 @@ angular.module('adminNg.controllers')
       });
 
       me.unvalidRule = !rulesValid;
-      me.hasRights = hasRights;
+      // codediff CA-820 SWITCH uses a custom ACL editor - We don't require READ or WRITE to be set
+      // me.hasRights = hasRights;
+      me.hasRights = true;
+      // codediff END
 
       if (me.unvalidRule) {
         if (!angular.isUndefined(me.notificationRules)) {
@@ -900,6 +941,7 @@ angular.module('adminNg.controllers')
         me.notificationRules = undefined;
       }
 
+      /* codediff CA-820 SWITCH uses a custom ACL editor - We don't require READ or WRITE to be set
       if (!me.hasRights) {
         if (!angular.isUndefined(me.notificationRights)) {
           Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
@@ -909,6 +951,7 @@ angular.module('adminNg.controllers')
         Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
         me.notificationRights = undefined;
       }
+      codediff END */
 
       if (hasRights && rulesValid) {
         EventAccessResource.save({id: $scope.resourceId}, {

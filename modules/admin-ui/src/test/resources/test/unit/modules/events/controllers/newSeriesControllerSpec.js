@@ -33,7 +33,9 @@ describe('New Series Controller', function () {
             $httpBackend.whenGET('/admin-ng/series/new/metadata').respond('{}');
             $httpBackend.whenGET('/admin-ng/resources/ACL.json').respond('{}');
             $httpBackend.whenGET('/admin-ng/resources/ACL.ACTIONS.json').respond('{}');
-            $httpBackend.whenGET('/admin-ng/resources/ROLES.json').respond('{}');
+            // codediff CA-820 SWITCH uses a custom ACL editor - we use a different list
+            $httpBackend.whenGET('/admin-ng/resources/USERS.SWITCH.ROLE.json').respond('{}');
+            // codediff END
             $httpBackend.whenGET('/admin-ng/resources/components.json').respond('{}');
             $httpBackend.whenGET('/admin-ng/series/new/themes').respond('{}');
             $httpBackend.whenGET('/info/me.json').respond(JSON.stringify(getJSONFixture('info/me.json')));
@@ -48,6 +50,11 @@ describe('New Series Controller', function () {
             }, {
                 name: 'access',
                 stateController: { ud: { id: 345 } }
+            // codediff CA-820 SWITCH uses a custom ACL editor - our custom tab
+            }, {
+                name: 'switch-access',
+                stateController: { ud: { id: 345 } }
+            // codediff END
             }, {
                 name: 'theme',
                 stateController: { ud: { theme: '2' } }

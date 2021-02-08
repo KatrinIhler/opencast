@@ -21,9 +21,10 @@
 'use strict';
 
 angular.module('adminNg.services')
-.factory('NewSeriesStates', ['NewSeriesMetadata', 'NewSeriesMetadataExtended', 'NewSeriesAccess', 'NewSeriesTheme',
-  'NewSeriesSummary',
-  function (NewSeriesMetadata, NewSeriesMetadataExtended, NewSeriesAccess, NewSeriesTheme, NewSeriesSummary) {
+.factory('NewSeriesStates', ['NewSeriesMetadata', 'NewSeriesMetadataExtended', /* 'NewSeriesAccess', */
+  'NewSeriesAccessSwitch', 'NewSeriesTheme',   'NewSeriesSummary',
+  function (NewSeriesMetadata, NewSeriesMetadataExtended, /* NewSeriesAccess, */ NewSeriesAccessSwitch, NewSeriesTheme,
+    NewSeriesSummary) {
     return {
       get: function () {
         return [{
@@ -35,15 +36,21 @@ angular.module('adminNg.services')
           name: 'metadata-extended',
           stateController: NewSeriesMetadataExtended
         }, {
+          /* codediff CA-820 SWITCH uses a custom ACL editor - We don't use that tab
           translation: 'EVENTS.SERIES.NEW.ACCESS.CAPTION',
           name: 'access',
           stateController: NewSeriesAccess
+          codediff END */
+          // codediff CA-820 SWITCH uses a custom ACL editor - We use our custom ACL tab
+          translation: 'EVENTS.SERIES.NEW.ACCESS.CAPTION',
+          name: 'access-switch',
+          stateController: NewSeriesAccessSwitch
+          // codediff END
         }, {
           translation: 'EVENTS.SERIES.NEW.THEME.CAPTION',
           name: 'theme',
           stateController: NewSeriesTheme
-        },
-        {
+        }, {
           translation: 'EVENTS.SERIES.NEW.SUMMARY.CAPTION',
           name: 'summary',
           stateController: NewSeriesSummary

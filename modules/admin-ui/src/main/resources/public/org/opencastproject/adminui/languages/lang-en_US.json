@@ -1,4 +1,54 @@
 {
+  "SWITCHCAST": {
+    "ACL":{
+      "USER_NG_INPUT": "Add a user...",
+      "SELECT_TEMPLATE": "Select a template...",
+      "CAPTION": "Permissions",
+      "ACTION": {
+        "TITLE": "Persons, who can manage this serie",
+        "DESCRIPTION": "Select people who can additionally view and manage all events in this serie",
+        "DOWNLOAD" : {
+          "NAME": "Download",
+          "DESCRIPTION" : "Allow users to download the video files of events in this serie"
+        },
+        "ANNOTATE": {
+          "NAME": "Annotate",
+          "DESCRIPTION": "Allow users to annotate the events in this serie"
+        }
+      },
+      "TEMPLATE": {
+        "TITLE": "View Permissions",
+        "PUBLIC": {
+          "NAME": "Public",
+          "DESCRIPTION": "All events in this serie can be found and viewed by anybody"
+        },
+        "FEDERATION": {
+          "NAME": "Federation",
+          "DESCRIPTION": "A user has to login with his/her SWITCHaai account (of any Swiss university) to view the events in this serie"
+        },
+        "ORGANIZATION": {
+          "NAME": "Organization",
+          "DESCRIPTION": "Only user of your organization can view the events of this series. They have to login with their SWITCHaai account"
+        },
+        "PRIVATE": {
+          "NAME": "Private",
+          "DESCRIPTION": "Only persons defined in the lower part of this dialog can view the events in this serie. Be careful with this since all defined persons in the list below can also manage the all events in this serie (e.g. add/change metadata, delete events, etc.)"
+        },
+        "LMS": {
+          "NAME": "Learning Management System",
+          "DESCRIPTION": "The permissions to view all events of this serie will be handled by ILIAS, Moodle or OLAT"
+        },
+        "HIDDEN": {
+          "NAME": "Not Searchable (public)",
+          "DESCRIPTION": "All events cannot be found via a search engine (like google, bing, etc). Although every person who has the link to one of the events in this serie can watch this event without login"
+        },
+        "CUSTOM": {
+          "NAME": "Unknown",
+          "DESCRIPTION": "This series comes with access permissions that don't match any of the pre-defined permission templates"
+        }
+      }
+    }
+  },
    "MATTERHORN":   "Opencast",
    "NAV_HOME":     "Start",
    "NAV_ABOUT":    "About",

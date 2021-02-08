@@ -24,9 +24,10 @@
 angular.module('adminNg.controllers')
 .controller('SerieCtrl', ['$scope', 'SeriesMetadataResource', 'SeriesEventsResource', 'SeriesAccessResource',
   'SeriesThemeResource', 'ResourcesListResource', 'UserRolesResource', 'Notifications', 'AuthService',
-  'StatisticsReusable', '$http',
+  'StatisticsReusable', '$http', 'switchAcls', '$filter',
   function ($scope, SeriesMetadataResource, SeriesEventsResource, SeriesAccessResource, SeriesThemeResource,
-    ResourcesListResource, UserRolesResource, Notifications, AuthService, StatisticsReusable, $http) {
+    ResourcesListResource, UserRolesResource, Notifications, AuthService, StatisticsReusable, $http, switchAcls,
+    $filter) {
 
     var roleSlice = 100;
     var roleOffset = 0;
@@ -49,6 +50,7 @@ angular.module('adminNg.controllers')
           };
         },
         changePolicies = function (access, loading) {
+
           var newPolicies = {};
           angular.forEach(access, function (acl) {
             var policy = newPolicies[acl.role];
@@ -62,20 +64,142 @@ angular.module('adminNg.controllers')
               newPolicies[acl.role].actions.value.push(acl.action);
             }
           });
+          // codediff CA-820 SWITCH uses a custom ACL editor
+          AuthService.getUser().$promise.then(function (user) {
+            var orgProperties = user.org.properties;
+            //Variables needed to determine an event's start time
+            me.aaiOrg = orgProperties['aai.org'];
+            $scope.isCustomTemplate = false;
+
+            if(newPolicies.ROLE_ANONYMOUS
+            && $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-discover').length === 1) {
+              $scope.aclSelected['template'] = switchAcls[0];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-download').length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-annotate').length === 1;
+
+            } else if(newPolicies.ROLE_AAI_FEDERATION_MEMBER
+            && $filter('filter')(newPolicies.ROLE_AAI_FEDERATION_MEMBER.actions.value, 'cast-view').length === 1) {
+              $scope.aclSelected['template'] = switchAcls[1];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')(newPolicies.ROLE_AAI_FEDERATION_MEMBER.actions.value, 'cast-download').length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')(newPolicies.ROLE_AAI_FEDERATION_MEMBER.actions.value, 'cast-annotate').length === 1;
+
+            } else if(newPolicies['ROLE_AAI_ORG_' + me.aaiOrg + '_MEMBER']
+            && $filter('filter')(newPolicies['ROLE_AAI_ORG_' + me.aaiOrg + '_MEMBER'].actions.value, 'cast-view')
+            .length === 1) {
+              $scope.aclSelected['template'] = switchAcls[2];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')($filter('filter')(newPolicies['ROLE_AAI_ORG_' + me.aaiOrg + '_MEMBER'].actions.value,
+                  'cast-download')).length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')($filter('filter')(newPolicies['ROLE_AAI_ORG_' + me.aaiOrg + '_MEMBER'].actions.value,
+                  'cast-annotate')).length === 1;
+
+            } else if(newPolicies.ROLE_AAI_PRIVATE_MEMBER &&
+            $filter('filter')(newPolicies.ROLE_AAI_PRIVATE_MEMBER.actions.value, 'cast-view').length === 1) {
+              $scope.aclSelected['template'] = switchAcls[3];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')(newPolicies.ROLE_AAI_PRIVATE_MEMBER.actions.value, 'cast-download').length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')(newPolicies.ROLE_AAI_PRIVATE_MEMBER.actions.value, 'cast-annotate').length === 1;
+
+            } else if(newPolicies.ROLE_EXTERNAL_APPLICATION
+            && newPolicies.ROLE_EXTERNAL_APPLICATION.read && newPolicies.ROLE_EXTERNAL_APPLICATION.write) {
+              $scope.aclSelected['template'] = switchAcls[4];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')(newPolicies.ROLE_EXTERNAL_APPLICATION.actions.value, 'cast-download').length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')(newPolicies.ROLE_EXTERNAL_APPLICATION.actions.value, 'cast-annotate').length === 1;
+
+            } else if(newPolicies.ROLE_ANONYMOUS
+            && $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-discover').length === 0) {
+              $scope.aclSelected['template'] = switchAcls[5];
+              $scope.switchCheckboxVals.allowDownload =
+                $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-download').length === 1;
+              $scope.switchCheckboxVals.allowAnnotate =
+                $filter('filter')(newPolicies.ROLE_ANONYMOUS.actions.value, 'cast-annotate').length === 1;
+
+            } else {
+              $scope.isCustomTemplate = true;
+            }
+          });
+          $scope.tags = [];
+          // codediff END
 
           $scope.policies = [];
           angular.forEach(newPolicies, function (policy) {
             $scope.policies.push(policy);
+            // codediff CA-820 SWITCH uses a custom ACL editor
+            var user = $filter('filter')($scope.usersList, { value: policy.role });
+            if(user.length && $scope.tags.indexOf(user[0]) < 0) { // don't add users twice
+              $scope.tags.push(user[0]);
+            }
+            // codediff END
           });
 
           if (loading) {
             $scope.validAcl = true;
           } else {
-            $scope.accessSave();
+          // codediff CA-820 SWITCH uses a custom ACL editor
+            $scope.accessSave(false);
+            // codediff CA-820 SWITCH uses a custom ACL editor
           }
         };
 
-    $scope.aclLocked = false,
+    // codediff CA-820 SWITCH uses a custom ACL editor
+    $scope.usersList = [];
+
+    $scope.tags = [];
+    $scope.aclSelected = { template: undefined };
+
+    $scope.loadTags = function(query){
+      return $scope.usersList.filter(function(user){
+        return user.name.toLowerCase().indexOf(query.toLowerCase()) != -1;
+      });
+    };
+
+    $scope.reloadSelectedTags = function() {
+      var tags = [];
+      angular.forEach($scope.policies, function (policy) {
+        var user = $filter('filter')($scope.usersList, { key: policy.role });
+        if(user.length && tags.indexOf(user[0]) < 0) { // don't add users twice
+          tags.push(user[0]);
+        }
+      });
+      $scope.tags = tags;
+    };
+
+    $scope.removeUserTag = function(tag) {
+      for(var i = 0; i < $scope.policies.length; i++) {
+        var policy = $scope.policies[i];
+        if (policy.role === tag.value) {
+          $scope.policies.splice(i, 1);
+          i--;
+        }
+      }
+
+      $scope.accessSave(false);
+    };
+
+    $scope.addUserTag = function(tag){
+      var policy = createPolicy(tag.value);
+      policy.read = true;
+      policy.write = true;
+      // currently not all roles are loaded at once, so for it to visible it has to be added to the list
+      if (angular.isUndefined($scope.roles[tag.key])) {
+        $scope.roles[tag.key] = tag.key;
+      }
+      $scope.policies.push(policy);
+      $scope.accessSave(false);
+    };
+
+    $scope.aclRequestPending = false;
+    // codediff END
+
+    $scope.aclLocked = false;
     $scope.policies = [];
     $scope.baseAcl = {};
 
@@ -93,6 +217,69 @@ angular.module('adminNg.controllers')
       });
       this.baseAclId = '';
     };
+
+    // codediff CA-820 SWITCH uses a custom ACL editor
+    $scope.switchCheckboxVals = {};
+    $scope.changeBaseAclSwitch = function () {
+      var selectedAcls = angular.copy(this.aclSelected.template.acls);
+      var aclsFromPolicy = [];
+      angular.forEach($scope.policies, function(policy, key) {
+        if( policy.role !== 'ROLE_ANONYMOUS' &&
+            policy.role !== 'ROLE_AAI_FEDERATION_MEMBER' &&
+            policy.role !== 'ROLE_AAI_ORG_' + me.aaiOrg + '_MEMBER' &&
+            policy.role !== 'ROLE_AAI_PRIVATE_MEMBER' &&
+            policy.role !== 'ROLE_EXTERNAL_APPLICATION') {
+
+          aclsFromPolicy.push({
+            action: 'read',
+            allow: policy.read,
+            role: policy.role
+          });
+
+          aclsFromPolicy.push({
+            action: 'write',
+            allow: policy.write,
+            role: policy.role
+          });
+
+          if(policy.actions && policy.actions.name === 'series-acl-actions' && policy.actions.value) {
+            angular.forEach(policy.actions.value, function(actionValue) {
+              aclsFromPolicy.push({
+                action: actionValue,
+                allow: true,
+                role: policy.role
+              });
+            });
+          }
+        }
+      });
+      if($scope.switchCheckboxVals.allowDownload){
+        selectedAcls.push({
+          action: 'cast-download',
+          allow: true,
+          role: this.aclSelected['template'].role
+        });
+      }
+      if($scope.switchCheckboxVals.allowAnnotate){
+        selectedAcls.push({
+          action: 'cast-annotate',
+          allow: true,
+          role: this.aclSelected['template'].role
+        });
+      }
+
+      angular.forEach(selectedAcls, function (acl) {
+        if (acl.role.indexOf('<org-domain>') != -1){
+          acl.role = acl.role.replace('<org-domain>', $scope.aaiOrg);
+        }
+      });
+
+      var newAcls = aclsFromPolicy.concat(selectedAcls);
+
+      changePolicies(newAcls);
+      this.baseAclId = '';
+    };
+    // codediff END
 
     $scope.addPolicy = function () {
       $scope.policies.push(createPolicy());
@@ -222,28 +409,45 @@ angular.module('adminNg.controllers')
       });
 
       $scope.roles = {};
+      $scope.usersList = [];
 
-      $scope.access = SeriesAccessResource.get({ id: id }, function (data) {
-        if (angular.isDefined(data.series_access)) {
-          var json = angular.fromJson(data.series_access.acl);
-          changePolicies(json.acl.ace, true);
-
-          $scope.aclLocked = data.series_access.locked;
-
-          if ($scope.aclLocked) {
-            aclNotification = Notifications.add('warning', 'SERIES_ACL_LOCKED', 'series-acl-' + id, -1);
-          } else if (aclNotification) {
-            Notifications.remove(aclNotification, 'series-acl');
-          }
-          angular.forEach(data.series_access.privileges, function(value, key) {
-            if (angular.isUndefined($scope.roles[key])) {
-              $scope.roles[key] = key;
-            }
+      // codediff CA-820 SWITCH uses a custom ACL editor
+      $http({
+        method: 'GET',
+        url: '/admin-ng/resources/USERS.SWITCH.ROLE.json'
+      }).then(function successCallback(response) {
+        Object.keys(response.data).forEach(function(key,index) {
+          $scope.usersList.push({
+            key: key,
+            name: key,
+            value: response.data[key]
           });
-        }
+          // codediff END
+        });
+        // load acls after users have been loaded
+        $scope.access = SeriesAccessResource.get({ id: id }, function (data) {
+          if (angular.isDefined(data.series_access)) {
+            var json = angular.fromJson(data.series_access.acl);
+            changePolicies(json.acl.ace, true);
+
+            $scope.aclLocked = data.series_access.locked;
+            if ($scope.aclLocked) {
+              aclNotification = Notifications.add('warning', 'SERIES_ACL_LOCKED', 'series-acl-' + id, -1);
+            } else if (aclNotification) {
+              Notifications.remove(aclNotification, 'series-acl');
+            }
+            angular.forEach(data.series_access.privileges, function(value, key) {
+              if (angular.isUndefined($scope.roles[key])) {
+                $scope.roles[key] = key;
+              }
+            });
+          }
+        });
       });
 
-      $scope.acls  = ResourcesListResource.get({ resource: 'ACL' });
+      // codediff CA-820 SWITCH uses a custom ACL editor - we use switchAcls above
+      //$scope.acls  = ResourcesListResource.get({ resource: 'ACL' });
+      // codediff END
       $scope.actions = {};
       $scope.hasActions = false;
       ResourcesListResource.get({ resource: 'ACL.ACTIONS' }, function(data) {
@@ -321,6 +525,12 @@ angular.module('adminNg.controllers')
 
     fetchChildResources($scope.resourceId);
 
+    // codediff CA-820 SWITCH uses a custom ACL editor (we need the AAI home organization)
+    AuthService.getUser().$promise.then(function (user) {
+      $scope.aaiOrg = user.org.properties['aai.org'];
+    });
+    // codediff END
+
     $scope.$on('change', function (event, id) {
       fetchChildResources(id);
     });
@@ -362,7 +572,13 @@ angular.module('adminNg.controllers')
       }
     };
 
-    $scope.accessSave = function (override) {
+    // codediff CA-820 SWITCH uses a custom ACL editor
+    $scope.accessSave = function (reloadTags, override) {
+      if (angular.isUndefined(reloadTags)) {
+        reloadTags = true;
+      }
+      // codediff END
+
       var ace = [],
           hasRights = false,
           rulesValid = false;
@@ -408,7 +624,10 @@ angular.module('adminNg.controllers')
 
       $scope.validAcl = rulesValid;
       me.unvalidRule = !rulesValid;
-      me.hasRights = hasRights;
+      // codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
+      // me.hasRights = hasRights;
+      me.hasRights = true;
+      // codediff END
 
       if (me.unvalidRule) {
         if (!angular.isUndefined(me.notificationRules)) {
@@ -420,6 +639,7 @@ angular.module('adminNg.controllers')
         me.notificationRules = undefined;
       }
 
+      /* codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
       if (!me.hasRights) {
         if (!angular.isUndefined(me.notificationRights)) {
           Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
@@ -429,16 +649,30 @@ angular.module('adminNg.controllers')
         Notifications.remove(me.notificationRights, NOTIFICATION_CONTEXT);
         me.notificationRights = undefined;
       }
+      codediff END */
 
       if (hasRights && rulesValid) {
+        // codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
+        $scope.aclRequestPending = true;
+        var successHandler = function(value, headers, status, statusText) {
+          Notifications.add('info', 'SAVED_ACL_RULES', NOTIFICATION_CONTEXT, 1200);
+          $scope.aclRequestPending = false;
+          // codediff CA-820 SWITCH uses a custom ACL editor
+          if (reloadTags) {
+            $scope.reloadSelectedTags();
+          }
+          // codediff END
+        };
+        var errorHandler = function(error) {
+          $scope.aclRequestPending = false;
+        };
+        // codediff END
         SeriesAccessResource.save({ id: $scope.resourceId }, {
           acl: {
             ace: ace
           },
           override: override
-        });
-
-        Notifications.add('info', 'SAVED_ACL_RULES', NOTIFICATION_CONTEXT, 1200);
+        }, successHandler, errorHandler);
       }
     };
 
@@ -449,7 +683,13 @@ angular.module('adminNg.controllers')
         $scope.acls  = ResourcesListResource.get({ resource: 'ACL' });
         $scope.getMoreRoles();
         break;
+      // codediff CA-820 SWITCH uses a custom ACL editor - we don't require READ or WRITE to be set
+      case 'permissions-switch':
+        $scope.aclsSwitch  =  switchAcls;
+        $scope.getMoreRoles();
+        break;
       }
+      // codediff END
     });
 
     $scope.themeSave = function () {
