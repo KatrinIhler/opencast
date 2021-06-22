@@ -77,7 +77,7 @@ public interface VitalLivestreamService {
     private Boolean publically;
 
     // A dictionary of live streams used in this event (keys are usually *presenter* and *slides*)
-    private Preview preview;
+    private Previews previews;
 
     public JsonVitalLiveStream(String id) {
       this.id = id;
@@ -98,11 +98,11 @@ public interface VitalLivestreamService {
     public Boolean getPublically() {
       return publically;
     }
-    public Preview getPreview() {
-      return preview;
+    public Previews getPreview() {
+      return previews;
     }
 
-    public class Preview {
+    public class Previews {
       private URL[] presenter;
       private URL[] slides;
 

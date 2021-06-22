@@ -80,12 +80,12 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
         continue;
       }
       final String[] channel = key.substring(CHANNELS_PREFIX.length()).split("\\.");
-//      if (orgUser.length != 2) {
-//        logger.warn("Ignoring invalid capture agent user definition. Should be {}.<organization>.<username>, was {}",
-//                CAPTURE_AGENT_USER_PREFIX, key);
-//      }
+      if (channel.length != 1) {
+        logger.warn("Ignoring invalid channel definition. Should be {}.<channelId>, was {}",
+                CHANNELS_PREFIX, key);
+        continue;
+      }
       final String channelId = channel[0];
-//      final String name = Objects.toString(properties.get(key), null);
 
       newChannels.add(channelId);
     }

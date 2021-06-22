@@ -24,6 +24,10 @@ package org.opencastproject.vitallivestream.impl.endpoint;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 import org.opencastproject.vitallivestream.impl.VitalLivestreamServiceImpl;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +56,39 @@ public class VitalLivestreamRestEndpointTest {
     String legalJson = "{ 'id': 'MyId', 'viewer': 'http://nope.com' }";
     Response response = rest.updateVitalLivestream(legalJson);
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+  }
+
+  @Test
+  public void testUpdateVitalLivestreamCompleteJson() throws Exception {
+    JsonObject completeJson = new JsonObject();
+    completeJson.addProperty("id", "MyId");
+    completeJson.addProperty("viewer", "https://api.medunigraz.at/video/live/viewer/<eventid>/");
+    completeJson.addProperty("title", "lorem ipsum");
+    completeJson.addProperty("description",
+            "Lorem <strong>ipsum dolor</strong> sit "
+                + "amet, <a href=\"https://www.medunigraz.at/\">consetetur</a> sadipscing elitr, ...");
+
+    JsonObject previews = new JsonObject();
+    JsonArray presenter = new JsonArray();
+    presenter.add("https://1.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg");
+    presenter.add("https://2.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg");
+    JsonArray slides = new JsonArray();
+    slides.add("https://1.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg");
+    slides.add("https://2.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg");
+    previews.add("presenter", presenter);
+    previews.add("slides", slides);
+
+    completeJson.add("previews", previews);
+
+    String payload = new Gson().toJson(completeJson);
+    Response responseUpdate = rest.updateVitalLivestream(payload);
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), responseUpdate.getStatus());
+
+    JsonArray completeJsonArray = new JsonArray();
+    completeJsonArray.add(completeJson);
+    Response responseGet = rest.getVitalLivestreams();
+    Object responseArray = new Gson().fromJson((String) responseGet.getEntity(), JsonArray.class);
+    Assert.assertTrue(completeJsonArray.equals(responseArray));
   }
 
   @Test
