@@ -41,6 +41,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -154,10 +155,18 @@ public class VitalLivestreamRestEndpoint {
    * @throws Exception
    */
   @GET
-  @Path("vitallivestream")
+  @Path("vitallivestream/{channelId}")
   @RestQuery(
-          name = "vitallivestream",
+          name = "vitallivestreamWithId",
           description = "Get livestream by id",
+          pathParameters = {
+                  @RestParameter(
+                          name = "channelId",
+                          description = "Id of the livestream",
+                          isRequired = true,
+                          type = RestParameter.Type.STRING
+                  )
+          },
           responses = {
                   @RestResponse(
                           responseCode = HttpServletResponse.SC_OK,
@@ -170,7 +179,7 @@ public class VitalLivestreamRestEndpoint {
           },
           returnDescription = "All clear."
   )
-  public Response getVitalLivestream(String channelId) throws Exception {
+  public Response getVitalLivestream(@PathParam("channelId") String channelId) throws Exception {
     logger.info("REST call for Livestreams");
 
     return Response.ok().entity(

@@ -74,7 +74,7 @@ public interface VitalLivestreamService {
     // Teaser/Description of the live event, may contain HTML
     private String description;
     // Boolean flag that signals if the event is public (`true`) or private (`false`)
-    private Boolean publically;
+    private Boolean unrestricted;
 
     // A dictionary of live streams used in this event (keys are usually *presenter* and *slides*)
     private Previews previews;
@@ -95,8 +95,8 @@ public interface VitalLivestreamService {
     public String getDescription() {
       return description;
     }
-    public Boolean getPublically() {
-      return publically;
+    public Boolean getUnrestricted() {
+      return unrestricted;
     }
     public Previews getPreview() {
       return previews;
