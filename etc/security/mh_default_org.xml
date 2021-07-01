@@ -32,6 +32,9 @@
     <sec:intercept-url pattern="/login.html" access="ROLE_ANONYMOUS" />
     <sec:intercept-url pattern="/sysinfo/bundles/version" method="GET" access="ROLE_ANONYMOUS" />
 
+    <!-- Allow anonymous access to vitallivestream endpoints -->
+    <sec:intercept-url pattern="/vital-livestream/**" method="GET" access="ROLE_ANONYMOUS" />
+
     <!-- Allow anonymous access to resources from runtime info ui -->
     <sec:intercept-url pattern="/img/**" access="ROLE_ANONYMOUS" />
     <sec:intercept-url pattern="/js/**" access="ROLE_ANONYMOUS" />

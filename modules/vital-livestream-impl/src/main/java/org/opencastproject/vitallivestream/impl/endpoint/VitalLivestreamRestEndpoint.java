@@ -21,6 +21,7 @@
 
 package org.opencastproject.vitallivestream.impl.endpoint;
 
+import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestQuery;
 import org.opencastproject.util.doc.rest.RestResponse;
@@ -28,12 +29,20 @@ import org.opencastproject.util.doc.rest.RestService;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
@@ -53,7 +62,7 @@ import javax.ws.rs.core.Response;
     property = {
         "service.description=Vital Livestream REST Endpoint",
         "opencast.service.type=org.opencastproject.vitallivestream",
-        "opencast.service.path=/vitallivestream",
+        "opencast.service.path=/vital-livestream",
         "opencast.service.jobproducer=false"
     },
     immediate = true,
@@ -86,8 +95,42 @@ public class VitalLivestreamRestEndpoint {
 
   private static final Gson gson = new Gson();
 
+  /** The http client */
+  private TrustedHttpClient httpClient;
+
   /**
-   * CHannels
+   * Sets the trusted http client
+   *
+   * @param httpClient
+   *          the http client
+   */
+  @Reference
+  public void setHttpClient(TrustedHttpClient httpClient) {
+    this.httpClient = httpClient;
+  }
+
+
+
+  private static final String SAMPLE_LIVESTREAM = "{\n"
+      + "   \"id\": \"myChannelID\",\n"
+      + "     \"viewer\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\",\n"
+      + "     \"title\": \"My Channel ID Title\",\n"
+      + "     \"description\": \"My Channel ID Description\",\n"
+      + "     \"previews\": {\n"
+      + "       \"presenter\": [\n"
+      + "         \"https://upload.wikimedia.org/wikipedia/commons/7/77/Banana_d%C3%A1gua.jpg\",\n"
+      + "         \"https://2.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg\"\n"
+      + "       ],\n"
+      + "       \"slides\": [\n"
+      + "         \"https://1.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg\",\n"
+      + "         \"https://2.asd.medunigraz.at/livestream/<eventid>/<stream1id>.jpg\"\n"
+      + "       ]\n"
+      + "     }\n"
+      + "}";
+
+
+  /**
+   * Channels
    *
    * @return The Hello World statement
    * @throws Exception
@@ -107,7 +150,7 @@ public class VitalLivestreamRestEndpoint {
                           description = "The underlying service could not output something."
                   )
           },
-          returnDescription = "All clear."
+          returnDescription = "A string array containing all channel ids."
   )
   public Response availableChannels() throws Exception {
     logger.info("REST call for Available Channels");
@@ -124,21 +167,21 @@ public class VitalLivestreamRestEndpoint {
    * @throws Exception
    */
   @GET
-  @Path("vitallivestream")
+  @Path("livestream")
   @RestQuery(
-          name = "vitallivestream",
-          description = "Get livestreams",
+          name = "livestream",
+          description = "Get all livestreams",
           responses = {
                   @RestResponse(
                           responseCode = HttpServletResponse.SC_OK,
-                          description = "The livestreams."
+                          description = "Returns the livestreams."
                   ),
                   @RestResponse(
                           responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                           description = "The underlying service could not output something."
                   )
           },
-          returnDescription = "All clear."
+          returnDescription = "A JsonArray containing all livestreams as JsonObjects."
   )
   public Response getVitalLivestreams() throws Exception {
     logger.info("REST call for Livestreams");
@@ -155,9 +198,9 @@ public class VitalLivestreamRestEndpoint {
    * @throws Exception
    */
   @GET
-  @Path("vitallivestream/{channelId}")
+  @Path("livestream/{channelId}")
   @RestQuery(
-          name = "vitallivestreamWithId",
+          name = "livestreamWithId",
           description = "Get livestream by id",
           pathParameters = {
                   @RestParameter(
@@ -180,7 +223,7 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = "All clear."
   )
   public Response getVitalLivestream(@PathParam("channelId") String channelId) throws Exception {
-    logger.info("REST call for Livestreams");
+    logger.info("REST call for livestream by id");
 
     return Response.ok().entity(
             gson.toJson(vitalLivestreamService.getLivestreamByChannel(channelId))
@@ -188,22 +231,140 @@ public class VitalLivestreamRestEndpoint {
   }
 
   /**
-   * Simple example service call
+   * Streams by Id
+   *
+   * @return The Hello World statement
+   * @throws Exception
+   */
+  @GET
+  @Path("streams/{channelId}")
+  @RestQuery(
+          name = "streams",
+          description = "Get streams for a livestream by id",
+          pathParameters = {
+                  @RestParameter(
+                          name = "channelId",
+                          description = "Id of the livestream",
+                          isRequired = true,
+                          type = RestParameter.Type.STRING
+                  )
+          },
+          responses = {
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_OK,
+                          description = "The streams of the livestream."
+                  ),
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                          description = "The underlying service could not output something."
+                  )
+          },
+          returnDescription = "All clear."
+  )
+  public Response getVitalLivestreamWithViewer(@PathParam("channelId") String channelId) throws Exception {
+    logger.info("REST call for streams of a livestream by id");
+
+    VitalLivestreamService.JsonVitalLiveStream livestream = vitalLivestreamService.getLivestreamByChannel(channelId);
+
+    String ser = null;
+    URI uri = new URI(livestream.getViewer().toString());
+    uri = new URI("http://localhost:8080/vital-livestream/viewer/" + channelId);
+    HttpResponse response = null;
+    InputStream in = null;
+    boolean isUpdated = false;
+    try {
+      HttpGet getDc = new HttpGet(uri);
+      response = httpClient.execute(getDc);
+      in = response.getEntity().getContent();
+
+      try {
+        ser = IOUtils.toString(in, "UTF-8");
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to read DublinCore from stream", e);
+      }
+
+      in.close();
+    } catch (IOException e) {
+      logger.error("Error updating series from DublinCoreCatalog: {}", e.getMessage());
+    } finally {
+      IOUtils.closeQuietly(in);
+      httpClient.close(response);
+    }
+
+    if (ser != null) {
+      return Response.ok().entity(ser).build();
+    } else {
+      return Response.serverError().build();
+    }
+  }
+
+  /**
+   * Demo Endpoint
+   *
+   * @return The Hello World statement
+   * @throws Exception
+   */
+  @GET
+  @Path("viewer/{channelId}")
+  @RestQuery(
+          name = "viewer",
+          description = "Get viewer by id",
+          pathParameters = {
+                  @RestParameter(
+                          name = "channelId",
+                          description = "Id of the livestream",
+                          isRequired = true,
+                          type = RestParameter.Type.STRING
+                  )
+          },
+          responses = {
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_OK,
+                          description = "The livestream."
+                  ),
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                          description = "The underlying service could not output something."
+                  )
+          },
+          returnDescription = "All clear."
+  )
+  public Response getDemo(@PathParam("channelId") String channelId) throws Exception {
+    logger.info("REST call for livestream by id");
+
+    JsonObject completeJson = new JsonObject();
+    completeJson.addProperty("viewer", "<viewerid>");
+    JsonObject streams = new JsonObject();
+    streams.addProperty("presenter", "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8");
+    streams.addProperty("slides", "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8");
+    completeJson.add("streams", streams);
+
+    String payload = new Gson().toJson(completeJson);
+
+
+    return Response.ok().entity(
+            payload
+    ).build();
+  }
+
+  /**
+   * Add a livestream
    *
    * @return The Hello World statement
    * @throws Exception
    */
   @PUT
-  @Path("vitallivestream")
+  @Path("livestream")
   @RestQuery(
-      name = "vitallivestream",
+      name = "livestream",
       description = "Adds a livestream",
       restParameters = {
           @RestParameter(
                   name = "livestream",
                   description = "JSON with livestream",
                   isRequired = true,
-                  type = RestParameter.Type.STRING
+                  type = RestParameter.Type.TEXT,
+                  defaultValue = SAMPLE_LIVESTREAM
           ),
       },
       responses = {
@@ -216,7 +377,7 @@ public class VitalLivestreamRestEndpoint {
               description = "The underlying service could not output something."
           )
       },
-      returnDescription = "All clear."
+      returnDescription = ""
   )
   public Response updateVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
     logger.info("REST call for Vital Livestream");
@@ -252,22 +413,22 @@ public class VitalLivestreamRestEndpoint {
   }
 
   /**
-   * Simple example service call
+   * Remove a livestream
    *
    * @return The Hello World statement
    * @throws Exception
    */
   @DELETE
-  @Path("vitallivestream")
+  @Path("livestream")
   @RestQuery(
-          name = "deleteVitalLivestream",
+          name = "deleteLivestream",
           description = "Deletes a livestream",
           restParameters = {
                   @RestParameter(
                           name = "livestream",
                           description = "JSON with livestream",
                           isRequired = true,
-                          type = RestParameter.Type.STRING
+                          type = RestParameter.Type.TEXT
                   ),
           },
           responses = {
@@ -280,7 +441,7 @@ public class VitalLivestreamRestEndpoint {
                           description = "The underlying service could not output something."
                   )
           },
-          returnDescription = "All clear."
+          returnDescription = ""
   )
   public Response deleteVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
     logger.info("REST call for Vital Livestream");
