@@ -258,6 +258,7 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-impl/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-workflow-condition-parser/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-workflow-service-impl/${project.version}</bundle>
@@ -391,6 +392,7 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-workflowoperation/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>
@@ -533,6 +535,7 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-impl/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>

@@ -93,6 +93,7 @@ public class VitalLivestreamRestEndpoint {
   /** The service */
   protected VitalLivestreamService vitalLivestreamService;
 
+  /** JSON parse utility */
   private static final Gson gson = new Gson();
 
   /** The http client */
@@ -109,8 +110,7 @@ public class VitalLivestreamRestEndpoint {
     this.httpClient = httpClient;
   }
 
-
-
+  /** Default Value for Rest Docs */
   private static final String SAMPLE_LIVESTREAM = "{\n"
       + "   \"id\": \"myChannelID\",\n"
       + "     \"viewer\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\",\n"
@@ -220,7 +220,7 @@ public class VitalLivestreamRestEndpoint {
                           description = "The underlying service could not output something."
                   )
           },
-          returnDescription = "All clear."
+          returnDescription = "A Json Object containing livestream data."
   )
   public Response getVitalLivestream(@PathParam("channelId") String channelId) throws Exception {
     logger.info("REST call for livestream by id");
@@ -238,6 +238,7 @@ public class VitalLivestreamRestEndpoint {
    */
   @GET
   @Path("streams/{channelId}")
+  @Produces(MediaType.APPLICATION_JSON)
   @RestQuery(
           name = "streams",
           description = "Get streams for a livestream by id",
@@ -259,7 +260,7 @@ public class VitalLivestreamRestEndpoint {
                           description = "The underlying service could not output something."
                   )
           },
-          returnDescription = "All clear."
+          returnDescription = "A Json Object containing the streams."
   )
   public Response getVitalLivestreamWithViewer(@PathParam("channelId") String channelId) throws Exception {
     logger.info("REST call for streams of a livestream by id");
@@ -271,7 +272,6 @@ public class VitalLivestreamRestEndpoint {
     uri = new URI("http://localhost:8080/vital-livestream/viewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
-    boolean isUpdated = false;
     try {
       HttpGet getDc = new HttpGet(uri);
       response = httpClient.execute(getDc);

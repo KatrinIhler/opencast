@@ -112,4 +112,27 @@ public class VitalLivestreamServiceTest {
     Assert.assertEquals(livestream2, gottenLivestream);
   }
 
+  @Test
+  public void testGetLivestreamByChannelThatDoesntExist() throws Exception {
+    String getChannelId = "MyIdDoesNotExist";
+    JsonVitalLiveStream livestream1 = new JsonVitalLiveStream("MyId1");
+    JsonVitalLiveStream livestream2 = new JsonVitalLiveStream("MyId2");
+
+    service.updateLivestream(livestream1);
+    service.updateLivestream(livestream2);
+
+    JsonVitalLiveStream gottenLivestream = service.getLivestreamByChannel(getChannelId);
+
+    Assert.assertEquals(null, gottenLivestream);
+  }
+
+  @Test
+  public void testGetLivestreamByChannelWhenNoLivestreamsExist() throws Exception {
+    String getChannelId = "MyIdDoesNotExist";
+
+    JsonVitalLiveStream gottenLivestream = service.getLivestreamByChannel(getChannelId);
+
+    Assert.assertEquals(null, gottenLivestream);
+  }
+
 }

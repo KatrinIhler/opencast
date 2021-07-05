@@ -111,24 +111,4 @@ public class VitalLivestreamRestEndpointTest {
     Response response = rest.deleteVitalLivestream(legalJson);
     Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
   }
-
-//  @Test
-//  public void testGetVitalLivestreams() throws Exception {
-//    String legalJson = "{ 'id': 'MyId', 'viewer': 'http://nope.com' }";
-//    String legalJson2 = "{ 'id': 'MyId2', 'viewer': 'http://nope.com' }";
-//    String returnJson = "[" + legalJson + "," + legalJson2 + "]";
-//
-//    Response response = rest.updateVitalLivestream(legalJson);
-//    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-//    Response response2 = rest.updateVitalLivestream(legalJson2);
-//    Assert.assertEquals(Response.Status.OK.getStatusCode(), response2.getStatus());
-//
-//    Response response3 = rest.getVitalLivestreams();
-//    Assert.assertEquals(Response.Status.OK.getStatusCode(), response3.getStatus());
-//
-//    Map<String, Object> rightMap = gson.fromJson(returnJson, channelListType);
-//    Map<String, Object> leftMap = gson.fromJson((JsonElement) response3.getEntity(), channelListType);
-//    MapDifference<String, Object> difference = Maps.difference(leftMap, rightMap);
-//    Assert.assertEquals(returnJson, response3.getEntity());
-//  }
 }
