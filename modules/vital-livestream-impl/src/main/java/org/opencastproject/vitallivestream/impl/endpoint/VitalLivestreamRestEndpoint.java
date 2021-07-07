@@ -335,8 +335,14 @@ public class VitalLivestreamRestEndpoint {
     JsonObject completeJson = new JsonObject();
     completeJson.addProperty("viewer", "<viewerid>");
     JsonObject streams = new JsonObject();
-    streams.addProperty("presenter", "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8");
-    streams.addProperty("slides", "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8");
+    streams.addProperty(
+            "presenter",
+            "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
+    );
+    streams.addProperty(
+        "slides",
+          "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8"
+    );
     completeJson.add("streams", streams);
 
     String payload = new Gson().toJson(completeJson);
