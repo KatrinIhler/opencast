@@ -23,9 +23,10 @@ package org.opencastproject.vitallivestream.api;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Api for the Hello World Service
+ * Api for the intermediary module between vital livestreaming and the Vallery portal
  */
 public interface VitalLivestreamService {
 
@@ -75,9 +76,8 @@ public interface VitalLivestreamService {
     private String description;
     // Boolean flag that signals if the event is public (`true`) or private (`false`)
     private Boolean unrestricted;
-
-    // A dictionary of live streams used in this event (keys are usually *presenter* and *slides*)
-    private Previews previews;
+    // A dictionary of live streams used in this event. Values are preview images
+    private Map<String, String[]> previews;
 
     public JsonVitalLiveStream(String id) {
       this.id = id;
@@ -98,20 +98,8 @@ public interface VitalLivestreamService {
     public Boolean getUnrestricted() {
       return unrestricted;
     }
-    public Previews getPreview() {
+    public Map<String, String[]>  getPreview() {
       return previews;
-    }
-
-    public class Previews {
-      private URL[] presenter;
-      private URL[] slides;
-
-      public URL[] getPresenter() {
-        return presenter;
-      }
-      public URL[] getSlides() {
-        return slides;
-      }
     }
   }
 }

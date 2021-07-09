@@ -29,7 +29,6 @@ import org.opencastproject.util.doc.rest.RestService;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.io.IOUtils;
@@ -116,6 +115,7 @@ public class VitalLivestreamRestEndpoint {
       + "     \"viewer\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\",\n"
       + "     \"title\": \"My Channel ID Title\",\n"
       + "     \"description\": \"My Channel ID Description\",\n"
+      + "     \"unrestricted\": true,\n"
       + "     \"previews\": {\n"
       + "       \"presenter\": [\n"
       + "         \"https://upload.wikimedia.org/wikipedia/commons/7/77/Banana_d%C3%A1gua.jpg\",\n"
@@ -127,7 +127,6 @@ public class VitalLivestreamRestEndpoint {
       + "       ]\n"
       + "     }\n"
       + "}";
-
 
   /**
    * Channels
@@ -153,7 +152,7 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = "A string array containing all channel ids."
   )
   public Response availableChannels() throws Exception {
-    logger.info("REST call for Available Channels");
+    logger.debug("REST call for Available Channels");
 
     return Response.ok().entity(
             gson.toJson(vitalLivestreamService.getAvailableChannels())
@@ -184,7 +183,7 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = "A JsonArray containing all livestreams as JsonObjects."
   )
   public Response getVitalLivestreams() throws Exception {
-    logger.info("REST call for Livestreams");
+    logger.debug("REST call for Livestreams");
 
     return Response.ok().entity(
             gson.toJson(vitalLivestreamService.getLivestreams())
@@ -223,7 +222,7 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = "A Json Object containing livestream data."
   )
   public Response getVitalLivestream(@PathParam("channelId") String channelId) throws Exception {
-    logger.info("REST call for livestream by id");
+    logger.debug("REST call for livestream by id");
 
     return Response.ok().entity(
             gson.toJson(vitalLivestreamService.getLivestreamByChannel(channelId))
@@ -263,13 +262,14 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = "A Json Object containing the streams."
   )
   public Response getVitalLivestreamWithViewer(@PathParam("channelId") String channelId) throws Exception {
-    logger.info("REST call for streams of a livestream by id");
+    logger.debug("REST call for streams of a livestream by id");
 
     VitalLivestreamService.JsonVitalLiveStream livestream = vitalLivestreamService.getLivestreamByChannel(channelId);
 
     String ser = null;
     URI uri = new URI(livestream.getViewer().toString());
-    uri = new URI("http://localhost:8080/vital-livestream/viewer/" + channelId);
+//    // Test with debug endpoint
+//    uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
     try {
@@ -298,60 +298,58 @@ public class VitalLivestreamRestEndpoint {
     }
   }
 
-  /**
-   * Demo Endpoint
-   *
-   * @return The Hello World statement
-   * @throws Exception
-   */
-  @GET
-  @Path("viewer/{channelId}")
-  @RestQuery(
-          name = "viewer",
-          description = "Get viewer by id",
-          pathParameters = {
-                  @RestParameter(
-                          name = "channelId",
-                          description = "Id of the livestream",
-                          isRequired = true,
-                          type = RestParameter.Type.STRING
-                  )
-          },
-          responses = {
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_OK,
-                          description = "The livestream."
-                  ),
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
-                  )
-          },
-          returnDescription = "All clear."
-  )
-  public Response getDemo(@PathParam("channelId") String channelId) throws Exception {
-    logger.info("REST call for livestream by id");
-
-    JsonObject completeJson = new JsonObject();
-    completeJson.addProperty("viewer", "<viewerid>");
-    JsonObject streams = new JsonObject();
-    streams.addProperty(
-            "presenter",
-            "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
-    );
-    streams.addProperty(
-        "slides",
-          "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8"
-    );
-    completeJson.add("streams", streams);
-
-    String payload = new Gson().toJson(completeJson);
-
-
-    return Response.ok().entity(
-            payload
-    ).build();
-  }
+//  /**
+//   * Demo Endpoint
+//   *
+//   * @return The Hello World statement
+//   * @throws Exception
+//   */
+//  @GET
+//  @Path("demoViewer/{channelId}")
+//  @RestQuery(
+//          name = "viewer",
+//          description = "Get viewer by id",
+//          pathParameters = {
+//                  @RestParameter(
+//                          name = "channelId",
+//                          description = "Id of the livestream",
+//                          isRequired = true,
+//                          type = RestParameter.Type.STRING
+//                  )
+//          },
+//          responses = {
+//                  @RestResponse(
+//                          responseCode = HttpServletResponse.SC_OK,
+//                          description = "The livestream."
+//                  ),
+//                  @RestResponse(
+//                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+//                          description = "The underlying service could not output something."
+//                  )
+//          },
+//          returnDescription = "All clear."
+//  )
+//  public Response getDemo(@PathParam("channelId") String channelId) throws Exception {
+//    logger.info("REST call for demo endpoint.");
+//
+//    // Create a demo response
+//    JsonObject completeJson = new JsonObject();
+//    completeJson.addProperty("viewer", "<viewerid>");
+//    JsonObject streams = new JsonObject();
+//    streams.addProperty(
+//            "presenter",
+//            "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
+//    );
+//    streams.addProperty(
+//        "slides",
+//          "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8"
+//    );
+//    completeJson.add("streams", streams);
+//
+//    String payload = new Gson().toJson(completeJson);
+//
+//    return Response.ok().entity(payload).build();
+//  }
 
   /**
    * Add a livestream
@@ -386,7 +384,7 @@ public class VitalLivestreamRestEndpoint {
       returnDescription = ""
   )
   public Response updateVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
-    logger.info("REST call for Vital Livestream");
+    logger.debug("REST call for adding or updating a livestream");
 
     // Parse
     try {
@@ -450,7 +448,7 @@ public class VitalLivestreamRestEndpoint {
           returnDescription = ""
   )
   public Response deleteVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
-    logger.info("REST call for Vital Livestream");
+    logger.debug("REST call for removing a livestream.");
 
     // Parse
     try {

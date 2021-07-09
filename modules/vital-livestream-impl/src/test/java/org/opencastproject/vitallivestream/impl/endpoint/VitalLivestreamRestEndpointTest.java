@@ -67,6 +67,7 @@ public class VitalLivestreamRestEndpointTest {
     completeJson.addProperty("description",
             "Lorem <strong>ipsum dolor</strong> sit "
                 + "amet, <a href=\"https://www.medunigraz.at/\">consetetur</a> sadipscing elitr, ...");
+    completeJson.addProperty("unrestricted", true);
 
     JsonObject previews = new JsonObject();
     JsonArray presenter = new JsonArray();

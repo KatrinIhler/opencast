@@ -34,6 +34,9 @@
 
     <!-- Allow anonymous access to vitallivestream endpoints -->
     <sec:intercept-url pattern="/vital-livestream/**" method="GET" access="ROLE_ANONYMOUS" />
+    <!-- Vital Paella player -->
+    <sec:intercept-url pattern="/vital-paella/ui/auth.html" access="ROLE_USER" />
+    <sec:intercept-url pattern="/vital-paella/ui/**" access="ROLE_ANONYMOUS" />
 
     <!-- Allow anonymous access to resources from runtime info ui -->
     <sec:intercept-url pattern="/img/**" access="ROLE_ANONYMOUS" />
