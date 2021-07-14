@@ -292,6 +292,7 @@
     <module>modules/videosegmenter-ffmpeg</module>
     <module>modules/videosegmenter-remote</module>
     <module>modules/videosegmenter-workflowoperation</module>
+    <module>modules/vital-chat-api</module>
     <module>modules/vital-chat-impl</module>
     <module>modules/waveform-api</module>
     <module>modules/waveform-ffmpeg</module>
