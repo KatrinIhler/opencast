@@ -21,13 +21,16 @@
 
 package org.opencastproject.vitallivestream.impl.endpoint;
 
-import org.opencastproject.vitallivestream.api.VitalLivestreamService;
+import static org.easymock.EasyMock.anyString;
+
+import org.opencastproject.vitalchat.api.VitalChat;
 import org.opencastproject.vitallivestream.impl.VitalLivestreamServiceImpl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +49,16 @@ public class VitalLivestreamRestEndpointTest {
    */
   @Before
   public void setUp() {
-    VitalLivestreamService service = new VitalLivestreamServiceImpl();
+    VitalLivestreamServiceImpl service = new VitalLivestreamServiceImpl();
+
+    VitalChat vitalChatService = EasyMock.createMock(VitalChat.class);
+    EasyMock.expect(vitalChatService.createChat(anyString())).andReturn(true).anyTimes();
+    EasyMock.expect(vitalChatService.deleteChat(anyString())).andReturn(true).anyTimes();
+
+    EasyMock.replay(vitalChatService);
+
+    service.setVitalChatService(vitalChatService);
+
     rest = new VitalLivestreamRestEndpoint();
     rest.setVitalLivestreamService(service);
   }

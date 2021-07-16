@@ -21,11 +21,13 @@
 
 package org.opencastproject.vitallivestream.impl;
 
+import org.opencastproject.vitalchat.api.VitalChat;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,14 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
 
   /** The module specific logger */
   private static final Logger logger = LoggerFactory.getLogger(VitalLivestreamServiceImpl.class);
+
+  /** The chat service */
+  protected VitalChat vitalChatService;
+
+  @Reference(name = "vitalchat-service")
+  public void setVitalChatService(VitalChat service) {
+    this.vitalChatService = service;
+  }
 
   /** Configuration file prefix for parsing channel Ids */
   public static final String CHANNELS_PREFIX = "channels.";
@@ -137,6 +147,7 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     } else {
       // Not found? Add
       livestreams.add(livestream);
+      vitalChatService.createChat(livestream.getId());
     }
   }
 
@@ -153,6 +164,7 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     // Found? Remove
     if (indexOpt.isPresent()) {
       livestreams.remove(indexOpt.getAsInt());
+      vitalChatService.deleteChat(livestream.getId());
       return true;
     }
     return false;

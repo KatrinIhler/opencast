@@ -21,9 +21,12 @@
 
 package org.opencastproject.vitallivestream.impl;
 
-import org.opencastproject.vitallivestream.api.VitalLivestreamService;
+import static org.easymock.EasyMock.anyString;
+
+import org.opencastproject.vitalchat.api.VitalChat;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService.JsonVitalLiveStream;
 
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,14 +39,31 @@ import java.util.List;
  */
 public class VitalLivestreamServiceTest {
 
-  private VitalLivestreamService service;
+  private VitalLivestreamServiceImpl service;
 
   /**
    * Setup for the Hello World Service
    */
   @Before
   public void setUp() {
-    service = new VitalLivestreamServiceImpl();
+//    service = new VitalLivestreamServiceImpl();
+
+    service = new VitalLivestreamServiceImpl() {
+//      @Override
+//      protected JobBarrier.Result waitForStatus(Job... jobs) throws IllegalStateException, IllegalArgumentException {
+//        JobBarrier.Result result = EasyMock.createNiceMock(JobBarrier.Result.class);
+//        EasyMock.expect(result.isSuccess()).andReturn(true).anyTimes();
+//        EasyMock.replay(result);
+//        return result;
+//      }
+    };
+    VitalChat vitalChatService = EasyMock.createMock(VitalChat.class);
+    EasyMock.expect(vitalChatService.createChat(anyString())).andReturn(true).anyTimes();
+    EasyMock.expect(vitalChatService.deleteChat(anyString())).andReturn(true).anyTimes();
+
+    EasyMock.replay(vitalChatService);
+
+    service.setVitalChatService(vitalChatService);
   }
 
   @Test
