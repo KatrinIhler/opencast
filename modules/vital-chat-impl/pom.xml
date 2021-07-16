@@ -58,13 +58,16 @@
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
     <!-- Testing -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
       <scope>test</scope>
     </dependency>
-
     <!--    <dependency>-->
 <!--      <groupId>junit</groupId>-->
 <!--      <artifactId>junit</artifactId>-->

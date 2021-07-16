@@ -21,11 +21,15 @@
 
 package org.opencastproject.vitalchat.impl.endpoint;
 
+import static org.opencastproject.vitalchat.api.VitalChat.websocketAddress;
+
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestQuery;
 import org.opencastproject.util.doc.rest.RestResponse;
 import org.opencastproject.util.doc.rest.RestService;
 import org.opencastproject.vitalchat.api.VitalChat;
+
+import com.google.gson.Gson;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -61,6 +65,8 @@ import javax.ws.rs.core.Response;
         title = "Vital Chat Service Endpoint",
         abstractText = "This is a tutorial service.",
         notes = {
+                "Creates a websocket at " + websocketAddress + ". Access chats by connecting to " + websocketAddress
+                + "/{chat-id}",
                 "All paths above are relative to the REST endpoint base (something like http://your.server/files)",
                 "If the service is down or not working it will return a status 503, this means the the "
                         + "underlying service is not working and is either restarting or has failed",
@@ -80,11 +86,14 @@ public class VitalChatRestEndpoint {
   /** The service */
   protected VitalChat vitalChatService;
 
+  /** JSON parse utility */
+  private static final Gson gson = new Gson();
+
   @GET
-  @Path("vitalchat")
+  @Path("getChats")
   @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(
-          name = "vitalchat",
+          name = "getChats",
           description = "Returns a list of chat ids",
           responses = {
                   @RestResponse(
@@ -99,79 +108,54 @@ public class VitalChatRestEndpoint {
         returnDescription = ""
   )
   public Response getVitalChats() throws Exception {
-    logger.info("REST call for Vital Chat");
-    return Response.ok().entity(vitalChatService.vitalChat()).build();
+    return Response.ok().entity(
+            gson.toJson(vitalChatService.getChats())
+    ).build();
   }
 
-  @GET
-  @Path("vitalchat/{id}")
-  @Produces(MediaType.TEXT_PLAIN)
-  @RestQuery(
-          name = "vitalchat",
-          description = "Returns a JSON with all chat messages",
-          pathParameters = {
-                  @RestParameter(
-                          name = "id",
-                          description = "chat id",
-                          isRequired = true,
-                          type = RestParameter.Type.TEXT
-                  )
-          },
-          responses = {
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_OK,
-                          description = "JSON with chat messages"
-                  ),
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
-                  )
-          },
-        returnDescription = ""
-  )
-  public Response getVitalChat(@PathParam("id") String id) throws Exception {
-    logger.info("REST call for Vital Chat ID");
-    return Response.ok().build();
-  }
+//  @GET
+//  @Path("vitalchat/{id}")
+//  @Produces(MediaType.TEXT_PLAIN)
+//  @RestQuery(
+//          name = "vitalchat",
+//          description = "Returns a JSON with all chat messages",
+//          pathParameters = {
+//                  @RestParameter(
+//                          name = "id",
+//                          description = "chat id",
+//                          isRequired = true,
+//                          type = RestParameter.Type.TEXT
+//                  )
+//          },
+//          responses = {
+//                  @RestResponse(
+//                          responseCode = HttpServletResponse.SC_OK,
+//                          description = "JSON with chat messages"
+//                  ),
+//                  @RestResponse(
+//                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+//                          description = "The underlying service could not output something."
+//                  )
+//          },
+//        returnDescription = ""
+//  )
+//  public Response getVitalChat(@PathParam("id") String id) throws Exception {
+//    logger.info("REST call for Vital Chat ID");
+//    return Response.ok().build();
+//  }
 
   @POST
-  @Path("vitalchat")
+  @Path("createChat/{id}")
   @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(
-          name = "vitalchat",
-          description = "Creates a new chat",
-          responses = {
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_OK,
-                          description = "Vital Chat successfully created"
-                  ),
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
-                  )
-          },
-        returnDescription = ""
-  )
-  public Response createVitalChat() throws Exception {
-    logger.info("REST call for Create Vital Chat");
-
-    vitalChatService.createChat("42");
-
-    return Response.ok().build();
-  }
-
-  @POST
-  @Path("vitalchat/{id}")
-  @Produces(MediaType.TEXT_PLAIN)
-  @RestQuery(
-          name = "vitalchat",
+          name = "createChat",
           description = "Creates a new chat with id",
           pathParameters = {
                   @RestParameter(
                           name = "id",
                           description = "chat id",
                           isRequired = true,
-                          type = RestParameter.Type.TEXT
+                          type = RestParameter.Type.STRING
                   )
           },
           responses = {
@@ -187,25 +171,23 @@ public class VitalChatRestEndpoint {
       returnDescription = ""
   )
   public Response addVitalChatMessage(@PathParam("id") String id) throws Exception {
-    logger.info("REST call for Vital Chat ID");
-
     vitalChatService.createChat(id);
 
     return Response.ok().build();
   }
 
   @DELETE
-  @Path("vitalchat/{id}")
+  @Path("deleteChat/{id}")
   @Produces(MediaType.TEXT_PLAIN)
   @RestQuery(
-          name = "vitalchat",
+          name = "deleteChat",
           description = "Removes a chat",
           pathParameters = {
                   @RestParameter(
                           name = "id",
                           description = "chat id",
                           isRequired = true,
-                          type = RestParameter.Type.TEXT
+                          type = RestParameter.Type.STRING
                   )
           },
           responses = {
@@ -221,7 +203,8 @@ public class VitalChatRestEndpoint {
       returnDescription = ""
   )
   public Response deleteVitalChat(@PathParam("id") String id) throws Exception {
-    logger.info("REST call for Vital Chat ID");
+    vitalChatService.deleteChat(id);
+
     return Response.ok().build();
   }
 

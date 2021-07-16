@@ -21,12 +21,14 @@
 
 package org.opencastproject.vitalchat.impl;
 
+import static org.opencastproject.vitalchat.api.VitalChat.websocketAddress;
+
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
 import javax.servlet.annotation.WebServlet;
 
-@WebServlet(name = "Example WebSocket Servlet", urlPatterns = { "/example-websocket "})
+@WebServlet(name = "Example WebSocket Servlet", urlPatterns = { websocketAddress})
 public class VitalChatServlet extends WebSocketServlet {
 
   @Override

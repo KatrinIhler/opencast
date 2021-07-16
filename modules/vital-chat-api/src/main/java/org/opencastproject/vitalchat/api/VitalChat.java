@@ -22,17 +22,33 @@
 package org.opencastproject.vitalchat.api;
 
 /**
- * Api for the Hello World Service
+ * Api for the Vital Chat Service
  */
 public interface VitalChat {
 
   /**
-   * Outputs "Hello World!"
-   *
-   * @return String with the text
+   * The endpoint for the chat websocket
+   * Specific chats are under `websocketAddress/{chat-id}`
    */
-  String vitalChat();
+  String websocketAddress = "/vitalchat-websocket";
 
-  String createChat(String id) throws Exception ;
+  /**
+   * Creates a new chat with the given id
+   * @param id chat-id
+   * @return Whether the chat could be created or not
+   */
+  boolean createChat(String id);
 
+  /**
+   * Deletes an existing chat with the given id
+   * @param id chat-id
+   * @return Whether the chat could be deleted or not
+   */
+  boolean deleteChat(String id);
+
+  /**
+   * Get all chat ids
+   * @return String array of chat ids
+   */
+  String[] getChats();
 }
