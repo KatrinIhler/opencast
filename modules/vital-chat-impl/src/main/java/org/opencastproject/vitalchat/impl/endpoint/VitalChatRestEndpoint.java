@@ -164,16 +164,18 @@ public class VitalChatRestEndpoint {
                           description = "Chat created"
                   ),
                   @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
+                          responseCode = HttpServletResponse.SC_CONFLICT,
+                          description = "Could not create chat, chat probably already exists"
                   )
           },
       returnDescription = ""
   )
   public Response addVitalChatMessage(@PathParam("id") String id) throws Exception {
-    vitalChatService.createChat(id);
-
-    return Response.ok().build();
+    if (vitalChatService.createChat(id)){
+      return Response.ok().build();
+    } else {
+      return Response.serverError().status(Response.Status.CONFLICT).build();
+    }
   }
 
   @DELETE
@@ -193,19 +195,21 @@ public class VitalChatRestEndpoint {
           responses = {
                   @RestResponse(
                           responseCode = HttpServletResponse.SC_OK,
-                          description = "Chat does not exist anymore"
+                          description = "Chat deleted"
                   ),
                   @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
+                          responseCode = HttpServletResponse.SC_NOT_FOUND,
+                          description = "Chat could not be deleted, probably already has been deleted"
                   )
           },
       returnDescription = ""
   )
   public Response deleteVitalChat(@PathParam("id") String id) throws Exception {
-    vitalChatService.deleteChat(id);
-
-    return Response.ok().build();
+    if (vitalChatService.deleteChat(id)){
+      return Response.ok().build();
+    } else {
+      return Response.serverError().status(Response.Status.NOT_FOUND).build();
+    }
   }
 
   @GET

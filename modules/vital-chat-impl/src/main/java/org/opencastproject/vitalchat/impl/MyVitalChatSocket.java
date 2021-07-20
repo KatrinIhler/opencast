@@ -122,8 +122,13 @@ public class MyVitalChatSocket implements VitalChat {
     return path.substring(path.lastIndexOf('/') + 1);
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#createChat(String)
+   */
   public boolean createChat(String id) {
     if (sessions.containsKey(id)) {
+      logger.debug("Cannot create chat with id {}: Already exists", id);
       return false;
     }
 
@@ -133,8 +138,13 @@ public class MyVitalChatSocket implements VitalChat {
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#deleteChat(String)
+   */
   public boolean deleteChat(String id) {
     if (!sessions.containsKey(id)) {
+      logger.debug("Cannot delete chat with id {}: Does not exist", id);
       return false;
     }
 
@@ -145,6 +155,10 @@ public class MyVitalChatSocket implements VitalChat {
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#getChats()
+   */
   public String[] getChats() {
     return sessions.keySet().toArray(new String[sessions.size()]);
   }
