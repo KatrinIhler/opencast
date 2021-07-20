@@ -46,17 +46,7 @@ public class VitalLivestreamServiceTest {
    */
   @Before
   public void setUp() {
-//    service = new VitalLivestreamServiceImpl();
-
-    service = new VitalLivestreamServiceImpl() {
-//      @Override
-//      protected JobBarrier.Result waitForStatus(Job... jobs) throws IllegalStateException, IllegalArgumentException {
-//        JobBarrier.Result result = EasyMock.createNiceMock(JobBarrier.Result.class);
-//        EasyMock.expect(result.isSuccess()).andReturn(true).anyTimes();
-//        EasyMock.replay(result);
-//        return result;
-//      }
-    };
+    service = new VitalLivestreamServiceImpl();
     VitalChat vitalChatService = EasyMock.createMock(VitalChat.class);
     EasyMock.expect(vitalChatService.createChat(anyString())).andReturn(true).anyTimes();
     EasyMock.expect(vitalChatService.deleteChat(anyString())).andReturn(true).anyTimes();

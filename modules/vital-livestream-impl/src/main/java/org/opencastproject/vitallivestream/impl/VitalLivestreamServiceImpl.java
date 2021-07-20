@@ -135,11 +135,11 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
    * {@inheritDoc}
    * @see org.opencastproject.vitallivestream.api.VitalLivestreamService#updateLivestream(JsonVitalLiveStream)
    */
-  public void updateLivestream(JsonVitalLiveStream livestream) {
+  public boolean updateLivestream(JsonVitalLiveStream livestream) {
     // Find by channel id
     OptionalInt indexOpt = findById(livestream);
     if (indexOpt == null) {
-      return;
+      return false;
     }
     // Found? Replace
     if (indexOpt.isPresent()) {
@@ -149,6 +149,8 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
       livestreams.add(livestream);
       vitalChatService.createChat(livestream.getId());
     }
+
+    return true;
   }
 
   /**

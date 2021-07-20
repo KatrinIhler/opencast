@@ -33,8 +33,9 @@ public interface VitalLivestreamService {
   /**
    * Adds a new active livestream or updates it if it is already running
    * @param livestream New livestream
+   * @return Whether a livestream could be updated or not
    */
-  void updateLivestream(JsonVitalLiveStream livestream);
+  boolean updateLivestream(JsonVitalLiveStream livestream);
 
   /**
    * Removes a livestream, thereby "stopping" it

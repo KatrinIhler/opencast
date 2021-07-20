@@ -39,7 +39,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -266,35 +265,33 @@ public class VitalLivestreamRestEndpoint {
 
     VitalLivestreamService.JsonVitalLiveStream livestream = vitalLivestreamService.getLivestreamByChannel(channelId);
 
-    String ser = null;
+    String stream = null;
     URI uri = new URI(livestream.getViewer().toString());
 //    // Test with debug endpoint
 //    uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
     try {
-      HttpGet getDc = new HttpGet(uri);
-      response = httpClient.execute(getDc);
+      HttpGet getDirectStream = new HttpGet(uri);
+      response = httpClient.execute(getDirectStream);
       in = response.getEntity().getContent();
 
-      try {
-        ser = IOUtils.toString(in, "UTF-8");
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to read DublinCore from stream", e);
-      }
+      stream = IOUtils.toString(in, "UTF-8");
 
       in.close();
-    } catch (IOException e) {
-      logger.error("Error updating series from DublinCoreCatalog: {}", e.getMessage());
+    } catch (Exception e) {
+      logger.warn("Error fetching direct stream: {}", e.getMessage());
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     } finally {
       IOUtils.closeQuietly(in);
       httpClient.close(response);
     }
 
-    if (ser != null) {
-      return Response.ok().entity(ser).build();
+    if (stream != null) {
+      return Response.ok().entity(stream).build();
     } else {
-      return Response.serverError().build();
+      logger.warn("Direct stream is null");
+      return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
   }
 
@@ -386,8 +383,8 @@ public class VitalLivestreamRestEndpoint {
   public Response updateVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
     logger.debug("REST call for adding or updating a livestream");
 
-    // Parse
     try {
+      // Parse
       VitalLivestreamService.JsonVitalLiveStream liveStream;
       try {
         liveStream = gson.fromJson(liveStreamJSON, VitalLivestreamService.JsonVitalLiveStream.class);
@@ -406,14 +403,18 @@ public class VitalLivestreamRestEndpoint {
         throw new IllegalArgumentException("Event is missing or missing channel id");
       }
 
-      vitalLivestreamService.updateLivestream(liveStream);
+      // Add
+      if (vitalLivestreamService.updateLivestream(liveStream)) {
+        return Response.ok().build();
+      } else {
+        return Response.status(HttpServletResponse.SC_CONFLICT).
+                entity("Could not update livestream, does the channel exist?").build();
+      }
 
     } catch (IllegalArgumentException e) {
       logger.debug("Received invalid JSON", e);
-      return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity("Invalid JSON").build();
+      return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity(e.getMessage()).build();
     }
-
-    return Response.ok().build();
   }
 
   /**
@@ -450,8 +451,8 @@ public class VitalLivestreamRestEndpoint {
   public Response deleteVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
     logger.debug("REST call for removing a livestream.");
 
-    // Parse
     try {
+      // Parse
       VitalLivestreamService.JsonVitalLiveStream liveStream;
       try {
         liveStream = gson.fromJson(liveStreamJSON, VitalLivestreamService.JsonVitalLiveStream.class);
@@ -466,14 +467,17 @@ public class VitalLivestreamRestEndpoint {
         throw new IllegalArgumentException("Channel is missing or missing channel id");
       }
 
-      vitalLivestreamService.deleteLivestream(liveStream);
+      // Delete
+      if (vitalLivestreamService.deleteLivestream(liveStream)) {
+        return Response.ok().build();
+      } else {
+        return Response.status(HttpServletResponse.SC_CONFLICT).entity("Could not delete livestream").build();
+      }
 
     } catch (IllegalArgumentException e) {
       logger.debug("Received invalid JSON", e);
-      return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity("Invalid JSON").build();
+      return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity(e.getMessage()).build();
     }
-
-    return Response.ok().build();
   }
 
   @GET

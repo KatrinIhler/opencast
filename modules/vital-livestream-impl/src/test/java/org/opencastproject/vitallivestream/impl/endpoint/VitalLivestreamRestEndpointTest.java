@@ -113,8 +113,10 @@ public class VitalLivestreamRestEndpointTest {
 
   @Test
   public void testDeleteVitalLivestream() throws Exception {
-    String legalJson = "{ 'id': 'MyId' }";
-    Response response = rest.deleteVitalLivestream(legalJson);
+    String legalJson = "{ 'id': 'MyId', 'viewer': 'http://nope.com' }";
+    Response response = rest.updateVitalLivestream(legalJson);
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    response = rest.deleteVitalLivestream(legalJson);
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 
@@ -123,5 +125,11 @@ public class VitalLivestreamRestEndpointTest {
     String legalJson = "{ 'id': 'MyId }";
     Response response = rest.deleteVitalLivestream(legalJson);
     Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+  }
+  @Test
+  public void testDeleteVitalLivestreamThatDoesNotExist() throws Exception {
+    String legalJson = "{ 'id': 'MyId', 'viewer': 'http://nope.com' }";
+    Response response = rest.deleteVitalLivestream(legalJson);
+    Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
   }
 }
