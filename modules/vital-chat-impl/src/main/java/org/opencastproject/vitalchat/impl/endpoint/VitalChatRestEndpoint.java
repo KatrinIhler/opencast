@@ -171,7 +171,7 @@ public class VitalChatRestEndpoint {
       returnDescription = ""
   )
   public Response addVitalChatMessage(@PathParam("id") String id) throws Exception {
-    if (vitalChatService.createChat(id)){
+    if (vitalChatService.createChat(id)) {
       return Response.ok().build();
     } else {
       return Response.serverError().status(Response.Status.CONFLICT).build();
@@ -205,7 +205,7 @@ public class VitalChatRestEndpoint {
       returnDescription = ""
   )
   public Response deleteVitalChat(@PathParam("id") String id) throws Exception {
-    if (vitalChatService.deleteChat(id)){
+    if (vitalChatService.deleteChat(id)) {
       return Response.ok().build();
     } else {
       return Response.serverError().status(Response.Status.NOT_FOUND).build();
