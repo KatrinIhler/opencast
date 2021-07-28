@@ -48,7 +48,7 @@ public interface VitalLivestreamService {
    * Get a list of all the channels that are currently configured
    * @return List of channels
    */
-  List<String> getAvailableChannels();
+  List<Channel> getAvailableChannels();
 
   /**
    * Get a list of all livestreams that are currently running
@@ -102,5 +102,14 @@ public interface VitalLivestreamService {
     public Map<String, String[]>  getPreview() {
       return previews;
     }
+  }
+
+  /**
+   * Struct to store information on the currently available channels
+   */
+  class Channel {
+    private String id;
+    private String name;
+    private List<Integer> portals;
   }
 }

@@ -21,9 +21,16 @@
 
 package org.opencastproject.vitallivestream.impl;
 
+import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.vitalchat.api.VitalChat;
 import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 
+import com.google.gson.Gson;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.annotations.Component;
@@ -31,11 +38,16 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -65,11 +77,33 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
   /** Configuration file prefix for parsing channel Ids */
   public static final String CHANNELS_PREFIX = "channels.";
 
+  public static final String DOWNLOAD_SOURCE = "channelEndpoint";
+
   /** Internal representation of currently running livestreams */
   private List<JsonVitalLiveStream> livestreams = new ArrayList<JsonVitalLiveStream>();
 
   /** Internal representation of currently existing channels */
-  private List<String> channels = new ArrayList();
+  private List<Channel> channels = new ArrayList();
+
+  private String channelEndpoint;
+
+  /** The http client */
+  private TrustedHttpClient httpClient;
+
+  /**
+   * Sets the trusted http client
+   *
+   * @param httpClient
+   *          the http client
+   */
+  @Reference
+  public void setHttpClient(TrustedHttpClient httpClient) {
+    this.httpClient = httpClient;
+  }
+
+  /** JSON parse utility */
+  private static final Gson gson = new Gson();
+
 
   @Override
   // Read config file
@@ -77,7 +111,16 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     // Example at: userdirectory.InMemoryUserAndRoleProvider
     if (properties == null) {
       channels.clear();
+      channelEndpoint = null;
       return;
+    }
+
+    channelEndpoint = StringUtils.trimToEmpty(((String) properties.get(DOWNLOAD_SOURCE)));
+    List<Channel> fetchChannels = null;
+    try {
+      fetchChannels = fetchChannels();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
     List<String> newChannels = new ArrayList<>();
@@ -101,14 +144,69 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     }
 
     // Update list of channels
-    channels = newChannels;
+    try {
+      channels = mergeChannels(newChannels, fetchChannels);
+    } catch (NullPointerException e) {
+      logger.info(e.getMessage());
+    }
+  }
+
+  private List<Channel> fetchChannels() throws IOException {
+    List<Channel> fetchedChannels = new ArrayList<>();
+    Warg warg = null;
+    String next = null;
+    HttpResponse response = null;
+    InputStream in = null;
+    try {
+      do {
+        URI uri = new URI(channelEndpoint);
+        HttpGet getDirectStream = new HttpGet(uri);
+        response = httpClient.execute(getDirectStream);
+        in = response.getEntity().getContent();
+
+        String inString = IOUtils.toString(in, "UTF-8");
+        in.close();
+
+        warg = gson.fromJson(inString, Warg.class); //new TypeToken<List<String>>() { } .getType());
+
+        if (warg.results != null) {
+          fetchedChannels.addAll(warg.results);
+        }
+      } while (next != null);
+    } catch (Exception e) {
+      logger.warn("Could not fetch channel from {} because of {}", channelEndpoint, e.getMessage());
+    } finally {
+      IOUtils.closeQuietly(in);
+      httpClient.close(response);
+    }
+    if (fetchedChannels != null) {
+      logger.info(fetchedChannels.toString());
+    } else {
+      logger.info("FetchedChannels is null");
+    }
+    return fetchedChannels;
+  }
+
+  private List<Channel> mergeChannels(List<Channel> channels1, List<Channel> channels2) throws NullPointerException {
+    Set<Channel> channelSet = new LinkedHashSet<>(channels1);
+    channelSet.addAll(channels2);
+    return new ArrayList<>(channelSet);
   }
 
   /**
    * {@inheritDoc}
    * @see org.opencastproject.vitallivestream.api.VitalLivestreamService#getAvailableChannels()
    */
-  public List<String> getAvailableChannels() {
+  public List<Channel> getAvailableChannels() {
+    List<Channel> fetchChannels = null;
+    try {
+      fetchChannels = fetchChannels();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    channels = mergeChannels(channels, fetchChannels);
+
     return channels;
   }
 
@@ -187,5 +285,29 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
             .filter(i -> livestream.getId().equals(livestreams.get(i).getId()))
             .findFirst();
     return indexOpt;
+  }
+
+
+
+  class Warg {
+    // The unique channel ID in which this live event should be listed
+    private int count;
+    private String next;
+    private String previous;
+    private List<Channel> results;
+
+    public int getCount() {
+      return count;
+    }
+    public String getNext() {
+      return next;
+    }
+    public String getPrevious() {
+      return previous;
+    }
+    public List<Channel> getResults() {
+      return results;
+    }
+
   }
 }
