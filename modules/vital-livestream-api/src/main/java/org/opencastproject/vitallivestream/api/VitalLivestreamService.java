@@ -108,8 +108,29 @@ public interface VitalLivestreamService {
    * Struct to store information on the currently available channels
    */
   class Channel {
+    // Unique identifier that links livestreams to a channel
     private String id;
+    // A room name
     private String name;
+    // Which portals this room should appear on. We care about "1"
     private List<Integer> portals;
+
+    public Channel(String id, String name, List<Integer> portals) {
+      this.id = id;
+      this.name = name;
+      this.portals = portals;
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public List<Integer> getPortals() {
+      return portals;
+    }
   }
 }

@@ -44,11 +44,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.OptionalInt;
-import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Middleware between the Vital Streaming Agent and the video portal Valerie
@@ -66,29 +67,40 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
   /** The module specific logger */
   private static final Logger logger = LoggerFactory.getLogger(VitalLivestreamServiceImpl.class);
 
-  /** The chat service */
-  protected VitalChat vitalChatService;
-
-  @Reference(name = "vitalchat-service")
-  public void setVitalChatService(VitalChat service) {
-    this.vitalChatService = service;
-  }
+  /** JSON parse utility */
+  private static final Gson gson = new Gson();
 
   /** Configuration file prefix for parsing channel Ids */
-  public static final String CHANNELS_PREFIX = "channels.";
-
-  public static final String DOWNLOAD_SOURCE = "channelEndpoint";
+  private static final String CHANNELS_PREFIX = "channels.";
+  /** Configuration file variable for the remote channel endpoint */
+  private static final String CHANNEL_ENDPOINT = "channelEndpoint";
+  /** We are only interested in channels that are associated with this portal number */
+  private static final int portalNumber = 1;
 
   /** Internal representation of currently running livestreams */
   private List<JsonVitalLiveStream> livestreams = new ArrayList<JsonVitalLiveStream>();
 
   /** Internal representation of currently existing channels */
   private List<Channel> channels = new ArrayList();
-
+  /** Separate representation for channels from the config file, so as to not accidentally overwrite them */
+  private List<Channel> configChannels = new ArrayList();
+  /** URI to send get requests to */
   private String channelEndpoint;
+
+  /** The chat service */
+  protected VitalChat vitalChatService;
 
   /** The http client */
   private TrustedHttpClient httpClient;
+
+  /**
+   * Set the chat service
+   * @param service the chat service
+   */
+  @Reference(name = "vitalchat-service")
+  public void setVitalChatService(VitalChat service) {
+    this.vitalChatService = service;
+  }
 
   /**
    * Sets the trusted http client
@@ -101,12 +113,8 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     this.httpClient = httpClient;
   }
 
-  /** JSON parse utility */
-  private static final Gson gson = new Gson();
-
-
   @Override
-  // Read config file
+  // Runs when config file is changed
   public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
     // Example at: userdirectory.InMemoryUserAndRoleProvider
     if (properties == null) {
@@ -115,16 +123,17 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
       return;
     }
 
-    channelEndpoint = StringUtils.trimToEmpty(((String) properties.get(DOWNLOAD_SOURCE)));
+    // Get channels from endpoint
+    channelEndpoint = StringUtils.trimToEmpty(((String) properties.get(CHANNEL_ENDPOINT)));
     List<Channel> fetchChannels = null;
     try {
       fetchChannels = fetchChannels();
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.warn("Could not fetch channels from endpoint: {}", e.getMessage());
     }
 
-    List<String> newChannels = new ArrayList<>();
-
+    // Read channels from config file
+    configChannels = new ArrayList<>();
     Enumeration<String> keys = properties.keys();
     while (keys.hasMoreElements()) {
       final String key = keys.nextElement();
@@ -139,58 +148,17 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
         continue;
       }
       final String channelId = channel[0];
+      final String name = Objects.toString(properties.get(key), null);
+      List<Integer> portals = new ArrayList<>();
+      portals.add(portalNumber);
 
-      newChannels.add(channelId);
+      configChannels.add(new Channel(channelId, name, portals));
     }
 
     // Update list of channels
     try {
-      channels = mergeChannels(newChannels, fetchChannels);
-    } catch (NullPointerException e) {
-      logger.info(e.getMessage());
-    }
-  }
-
-  private List<Channel> fetchChannels() throws IOException {
-    List<Channel> fetchedChannels = new ArrayList<>();
-    Warg warg = null;
-    String next = null;
-    HttpResponse response = null;
-    InputStream in = null;
-    try {
-      do {
-        URI uri = new URI(channelEndpoint);
-        HttpGet getDirectStream = new HttpGet(uri);
-        response = httpClient.execute(getDirectStream);
-        in = response.getEntity().getContent();
-
-        String inString = IOUtils.toString(in, "UTF-8");
-        in.close();
-
-        warg = gson.fromJson(inString, Warg.class); //new TypeToken<List<String>>() { } .getType());
-
-        if (warg.results != null) {
-          fetchedChannels.addAll(warg.results);
-        }
-      } while (next != null);
-    } catch (Exception e) {
-      logger.warn("Could not fetch channel from {} because of {}", channelEndpoint, e.getMessage());
-    } finally {
-      IOUtils.closeQuietly(in);
-      httpClient.close(response);
-    }
-    if (fetchedChannels != null) {
-      logger.info(fetchedChannels.toString());
-    } else {
-      logger.info("FetchedChannels is null");
-    }
-    return fetchedChannels;
-  }
-
-  private List<Channel> mergeChannels(List<Channel> channels1, List<Channel> channels2) throws NullPointerException {
-    Set<Channel> channelSet = new LinkedHashSet<>(channels1);
-    channelSet.addAll(channels2);
-    return new ArrayList<>(channelSet);
+      channels = mergeChannels(configChannels, fetchChannels);
+    } catch (NullPointerException e) { }
   }
 
   /**
@@ -202,10 +170,10 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     try {
       fetchChannels = fetchChannels();
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.warn("Could not fetch channels from endpoint: {}", e.getMessage());
     }
 
-    channels = mergeChannels(channels, fetchChannels);
+    channels = mergeChannels(configChannels, fetchChannels);
 
     return channels;
   }
@@ -287,13 +255,15 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     return indexOpt;
   }
 
-
-
-  class Warg {
-    // The unique channel ID in which this live event should be listed
+  /**
+   * For parsing responses from the remote channel endpoint
+   */
+  class ChannelResponseResult {
+    // Pagination
     private int count;
     private String next;
     private String previous;
+    // Channels on this "page"
     private List<Channel> results;
 
     public int getCount() {
@@ -308,6 +278,65 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     public List<Channel> getResults() {
       return results;
     }
+  }
 
+  /**
+   * Fetch all channels from endpoint
+   * @return
+   * @throws IOException
+   */
+  private List<Channel> fetchChannels() throws IOException {
+    List<Channel> fetchedChannels = new ArrayList<>();
+    String next = null;
+    HttpResponse response = null;
+    InputStream in = null;
+    try {
+      do {
+        URI uri = new URI(channelEndpoint);
+        HttpGet getDirectStream = new HttpGet(uri);
+        response = httpClient.execute(getDirectStream);
+        in = response.getEntity().getContent();
+
+        String inString = IOUtils.toString(in, "UTF-8");
+        in.close();
+
+        ChannelResponseResult result = gson.fromJson(inString, ChannelResponseResult.class);
+
+        if (result.results != null) {
+          fetchedChannels.addAll(result.results);
+        }
+
+        next = result.next;
+      } while (next != null);
+    } catch (Exception e) {
+      logger.warn("Could not fetch channel from {} because of {}", channelEndpoint, e.getMessage());
+    } finally {
+      IOUtils.closeQuietly(in);
+      httpClient.close(response);
+    }
+
+    // Filter out channels that do not interest us
+    fetchedChannels = fetchedChannels.stream()
+            .filter(a -> a.getPortals().contains(1))
+            .collect(Collectors.toList());
+
+    return fetchedChannels;
+  }
+
+  /**
+   * Merge two lists of objects, remove duplicates based on id
+   * Could make this more generic if needed
+   * @return combined list without duplicates
+   * @throws NullPointerException
+   */
+  private List<Channel> mergeChannels(List<Channel> channels1, List<Channel> channels2) throws NullPointerException {
+    List<Channel> channels = new ArrayList<>(
+            Stream.of(channels1, channels2)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toMap(Channel::getId,
+                            d -> d,
+                            (Channel x, Channel y) -> x == null ? y : x))
+                    .values());
+    return channels;
   }
 }
