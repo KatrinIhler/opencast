@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.net.URI;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -268,7 +269,7 @@ public class VitalLivestreamRestEndpoint {
     String stream = null;
     URI uri = new URI(livestream.getViewer().toString());
 //    // Test with debug endpoint
-//    uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
+//    URI uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
     try {
@@ -380,7 +381,41 @@ public class VitalLivestreamRestEndpoint {
       },
       returnDescription = ""
   )
-  public Response updateVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
+  public Response updateVitalLivestreamForm(@FormParam("livestream")String liveStreamJSON) throws Exception {
+    logger.debug("REST call for adding or updating a livestream from Form");
+    return updateVitalLivestream(liveStreamJSON);
+  }
+
+  /**
+   * Add a livestream
+   *
+   * @return The Hello World statement
+   * @throws Exception
+   */
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("livestream")
+  @RestQuery(
+          name = "livestream",
+          description = "Adds a livestream",
+          responses = {
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_OK,
+                          description = "Livestream was added."
+                  ),
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                          description = "The underlying service could not output something."
+                  )
+          },
+          returnDescription = ""
+  )
+  public Response updateVitalLivestreamBody(String liveStreamJSON) throws Exception {
+    logger.debug("REST call for adding or updating a livestream from body");
+    return updateVitalLivestream(liveStreamJSON);
+  }
+
+  public Response updateVitalLivestream(String liveStreamJSON) throws Exception {
     logger.debug("REST call for adding or updating a livestream");
 
     try {
@@ -395,11 +430,11 @@ public class VitalLivestreamRestEndpoint {
         throw new IllegalArgumentException("JSON is empty");
       }
       if (liveStream != null
-          && liveStream.getViewer() == null) {
+              && liveStream.getViewer() == null) {
         throw new IllegalArgumentException("Viewer is missing or malformed");
       }
       if (liveStream != null
-          && liveStream.getId() == null) {
+              && liveStream.getId() == null) {
         throw new IllegalArgumentException("Event is missing or missing channel id");
       }
 
@@ -426,29 +461,64 @@ public class VitalLivestreamRestEndpoint {
   @DELETE
   @Path("livestream")
   @RestQuery(
-          name = "deleteLivestream",
-          description = "Deletes a livestream",
-          restParameters = {
-                  @RestParameter(
-                          name = "livestream",
-                          description = "JSON with livestream",
-                          isRequired = true,
-                          type = RestParameter.Type.TEXT
-                  ),
-          },
-          responses = {
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_OK,
-                          description = "Livestream was deleted."
-                  ),
-                  @RestResponse(
-                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                          description = "The underlying service could not output something."
-                  )
-          },
-          returnDescription = ""
+      name = "deleteLivestream",
+      description = "Deletes a livestream",
+      restParameters = {
+              @RestParameter(
+                      name = "livestream",
+                      description = "JSON with livestream",
+                      isRequired = true,
+                      type = RestParameter.Type.TEXT,
+                      defaultValue = SAMPLE_LIVESTREAM
+              ),
+      },
+      responses = {
+              @RestResponse(
+                      responseCode = HttpServletResponse.SC_OK,
+                      description = "Livestream was deleted."
+              ),
+              @RestResponse(
+                      responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                      description = "The underlying service could not output something."
+              )
+      },
+      returnDescription = ""
   )
-  public Response deleteVitalLivestream(@FormParam("livestream") String liveStreamJSON) throws Exception {
+  public Response deleteVitalLivestreamForm(@FormParam("livestream")String liveStreamJSON) throws Exception {
+    logger.debug("REST call for removing a livestream from form");
+    return deleteVitalLivestream(liveStreamJSON);
+  }
+
+  /**
+   * Remove a livestream
+   *
+   * @return The Hello World statement
+   * @throws Exception
+   */
+  @DELETE
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("livestream")
+  @RestQuery(
+      name = "deleteLivestream",
+      description = "Deletes a livestream",
+      responses = {
+              @RestResponse(
+                      responseCode = HttpServletResponse.SC_OK,
+                      description = "Livestream was deleted."
+              ),
+              @RestResponse(
+                      responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                      description = "The underlying service could not output something."
+              )
+      },
+      returnDescription = ""
+  )
+  public Response deleteVitalLivestreamBody(String liveStreamJSON) throws Exception {
+    logger.debug("REST call for removing a livestream from body");
+    return deleteVitalLivestream(liveStreamJSON);
+  }
+
+  public Response deleteVitalLivestream(String liveStreamJSON) throws Exception {
     logger.debug("REST call for removing a livestream.");
 
     try {
@@ -463,7 +533,7 @@ public class VitalLivestreamRestEndpoint {
         throw new IllegalArgumentException("JSON is empty");
       }
       if (liveStream != null
-          && liveStream.getId() == null) {
+              && liveStream.getId() == null) {
         throw new IllegalArgumentException("Channel is missing or missing channel id");
       }
 
@@ -479,6 +549,7 @@ public class VitalLivestreamRestEndpoint {
       return Response.status(HttpServletResponse.SC_BAD_REQUEST).entity(e.getMessage()).build();
     }
   }
+
 
   @GET
   @Produces(MediaType.TEXT_HTML)
