@@ -33,7 +33,7 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Base64;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -51,6 +52,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -272,8 +274,13 @@ public class VitalLivestreamRestEndpoint {
 //    URI uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
+    String credentials = vitalLivestreamService.getViewerCredentials();
     try {
-      HttpGet getDirectStream = new HttpGet(uri);
+      HttpPost getDirectStream = new HttpPost(uri);
+      if (credentials != null) {
+        String encoding = Base64.getEncoder().encodeToString((credentials).getBytes());
+        getDirectStream.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + encoding);
+      }
       response = httpClient.execute(getDirectStream);
       in = response.getEntity().getContent();
 

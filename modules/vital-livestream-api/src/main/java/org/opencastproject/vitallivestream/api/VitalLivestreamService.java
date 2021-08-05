@@ -64,6 +64,12 @@ public interface VitalLivestreamService {
   JsonVitalLiveStream getLivestreamByChannel(String channelId);
 
   /**
+   * Get authorization credentials for requesting the stream URLs
+   * @return credentials as "user:password"
+   */
+  String getViewerCredentials();
+
+  /**
    * Struct to store information on a currently running livestream with
    */
   class JsonVitalLiveStream {

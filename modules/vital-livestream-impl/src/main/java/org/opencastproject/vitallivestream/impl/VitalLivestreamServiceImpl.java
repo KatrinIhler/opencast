@@ -76,6 +76,8 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
   private static final String CHANNEL_ENDPOINT = "channelEndpoint";
   /** We are only interested in channels that are associated with this portal number */
   private static final int portalNumber = 1;
+  /** Configuration file variable for the remote channel endpoint */
+  private static final String VIEWER_CREDENTIALS = "viewerCredentials";
 
   /** Internal representation of currently running livestreams */
   private List<JsonVitalLiveStream> livestreams = new ArrayList<JsonVitalLiveStream>();
@@ -86,6 +88,7 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
   private List<Channel> configChannels = new ArrayList();
   /** URI to send get requests to */
   private String channelEndpoint;
+  private String viewerCredentials;
 
   /** The chat service */
   protected VitalChat vitalChatService;
@@ -120,7 +123,14 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
     if (properties == null) {
       channels.clear();
       channelEndpoint = null;
+      viewerCredentials = null;
       return;
+    }
+
+    // Get credentials
+    viewerCredentials = StringUtils.trimToEmpty(((String) properties.get(VIEWER_CREDENTIALS)));
+    if (viewerCredentials == null) {
+      logger.debug("Viewer credentials not specified. Are you sure authorization is not necessary?");
     }
 
     // Get channels from endpoint
@@ -236,6 +246,14 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
       return true;
     }
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitallivestream.api.VitalLivestreamService#getViewerCredentials()
+   */
+  public String getViewerCredentials() {
+    return viewerCredentials;
   }
 
   /**
