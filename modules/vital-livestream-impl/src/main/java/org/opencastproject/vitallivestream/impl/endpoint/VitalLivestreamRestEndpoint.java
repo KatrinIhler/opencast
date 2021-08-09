@@ -309,7 +309,7 @@ public class VitalLivestreamRestEndpoint {
 //   * @return The Hello World statement
 //   * @throws Exception
 //   */
-//  @GET
+//  @POST
 //  @Path("demoViewer/{channelId}")
 //  @RestQuery(
 //          name = "viewer",
