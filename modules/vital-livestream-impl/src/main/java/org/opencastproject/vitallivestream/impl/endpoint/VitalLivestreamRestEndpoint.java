@@ -138,6 +138,7 @@ public class VitalLivestreamRestEndpoint {
    */
   @GET
   @Path("availablechannels")
+  @Produces(MediaType.APPLICATION_JSON)
   @RestQuery(
           name = "availablechannels",
           description = "Get available channels",
@@ -169,6 +170,7 @@ public class VitalLivestreamRestEndpoint {
    */
   @GET
   @Path("livestream")
+  @Produces(MediaType.APPLICATION_JSON)
   @RestQuery(
           name = "livestream",
           description = "Get all livestreams",
@@ -200,6 +202,7 @@ public class VitalLivestreamRestEndpoint {
    */
   @GET
   @Path("livestream/{channelId}")
+  @Produces(MediaType.APPLICATION_JSON)
   @RestQuery(
           name = "livestreamWithId",
           description = "Get livestream by id",
@@ -388,7 +391,7 @@ public class VitalLivestreamRestEndpoint {
       },
       returnDescription = ""
   )
-  public Response updateVitalLivestreamForm(@FormParam("livestream")String liveStreamJSON) throws Exception {
+  public Response updateVitalLivestreamForm(@FormParam("livestream") String liveStreamJSON) throws Exception {
     logger.debug("REST call for adding or updating a livestream from Form");
     return updateVitalLivestream(liveStreamJSON);
   }
@@ -436,12 +439,10 @@ public class VitalLivestreamRestEndpoint {
       if (liveStream == null) {
         throw new IllegalArgumentException("JSON is empty");
       }
-      if (liveStream != null
-              && liveStream.getViewer() == null) {
+      if (liveStream.getViewer() == null) {
         throw new IllegalArgumentException("Viewer is missing or malformed");
       }
-      if (liveStream != null
-              && liveStream.getId() == null) {
+      if (liveStream.getId() == null) {
         throw new IllegalArgumentException("Event is missing or missing channel id");
       }
 
@@ -539,8 +540,7 @@ public class VitalLivestreamRestEndpoint {
       if (liveStream == null) {
         throw new IllegalArgumentException("JSON is empty");
       }
-      if (liveStream != null
-              && liveStream.getId() == null) {
+      if (liveStream.getId() == null) {
         throw new IllegalArgumentException("Channel is missing or missing channel id");
       }
 
