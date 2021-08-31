@@ -72,6 +72,20 @@ function loadOpencastPaella(containerId) {
             paella.opencast.getEpisode()
             .then((episode) => {
               // VITAL PAELLA PLAYER CHANGES
+
+              // BEGIN HACK
+              // Extremely ugly and will break the mute and volume controls but at least we have audio for now
+              window.setInterval(() => {
+                for (var i = 0; i < 2; i++) {
+                  let v = document.getElementById('video_' + i);
+                  if (v) {
+                    v.muted = false;
+                    v.volume = 1;
+                  }
+                }
+              }, 1000);
+              // END HACK
+
               var convertedEpisode = [];
               var mandatoryFlavors = ['presenter', 'presentation'];
               for (var stream in episode.streams) {
