@@ -29,7 +29,7 @@ var source = require('vinyl-source-stream');
 var gunzip = require('gulp-gunzip');
 var untar = require('gulp-untar');
 
-var PAELLA_VERSION = '6.4.3';
+var PAELLA_VERSION = 'medunigraz-6.4.3-2021-09-03';
 
 var buildPath = 'target/gulp',
     paellaSrc = 'src/main/paella-opencast',
@@ -37,7 +37,7 @@ var buildPath = 'target/gulp',
 
 
 gulp.task('paella-opencast:download:paella', function(){
-  return request('https://github.com/polimediaupv/paella/archive/' + PAELLA_VERSION + '.tar.gz')
+  return request('https://github.com/elan-ev/paella/archive/' + PAELLA_VERSION + '.tar.gz')
   .pipe(source(PAELLA_VERSION + '.tar.gz'))
   .pipe(gunzip())
   .pipe(untar())
