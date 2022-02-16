@@ -21,6 +21,7 @@
 
 package org.opencastproject.vitallivestream.impl.endpoint;
 
+import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.util.doc.rest.RestParameter;
 import org.opencastproject.util.doc.rest.RestQuery;
@@ -30,6 +31,7 @@ import org.opencastproject.vitallivestream.api.VitalLivestreamService;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -40,14 +42,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -93,12 +103,24 @@ public class VitalLivestreamRestEndpoint {
 
   /** The service */
   protected VitalLivestreamService vitalLivestreamService;
+  private SecurityService securityService;
 
   /** JSON parse utility */
   private static final Gson gson = new Gson();
+  private static final Type jsonMapType = new TypeToken<Map<String, Object>>() { }.getType();
 
   /** The http client */
   private TrustedHttpClient httpClient;
+
+  /** Cache of active viewers */
+  private Map<String, Map<String, Viewer>> viewerCache = new ConcurrentHashMap<>();
+
+  class Viewer {
+    protected String username;
+    protected String fullName;
+    protected Object viewerId;
+    protected long lastHeardFrom;
+  }
 
   /**
    * Sets the trusted http client
@@ -111,10 +133,16 @@ public class VitalLivestreamRestEndpoint {
     this.httpClient = httpClient;
   }
 
+  @Reference
+  public void setSecurityService(SecurityService securityService) {
+    this.securityService = securityService;
+  }
+
+
   /** Default Value for Rest Docs */
   private static final String SAMPLE_LIVESTREAM = "{\n"
       + "   \"id\": \"myChannelID\",\n"
-      + "     \"viewer\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\",\n"
+      + "     \"viewer\": \"http://localhost:8080/vital-livestream/demoViewer\",\n"
       + "     \"title\": \"My Channel ID Title\",\n"
       + "     \"description\": \"My Channel ID Description\",\n"
       + "     \"unrestricted\": true,\n"
@@ -271,10 +299,8 @@ public class VitalLivestreamRestEndpoint {
 
     VitalLivestreamService.JsonVitalLiveStream livestream = vitalLivestreamService.getLivestreamByChannel(channelId);
 
-    String stream = null;
+    String stream;
     URI uri = new URI(livestream.getViewer().toString());
-//    // Test with debug endpoint
-//    URI uri = new URI("http://localhost:8080/vital-livestream/demoViewer/" + channelId);
     HttpResponse response = null;
     InputStream in = null;
     String credentials = vitalLivestreamService.getViewerCredentials();
@@ -298,66 +324,119 @@ public class VitalLivestreamRestEndpoint {
       httpClient.close(response);
     }
 
-    if (stream != null) {
-      return Response.ok().entity(stream).build();
-    } else {
+    if (stream == null) {
       logger.warn("Direct stream is null");
       return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
+
+    // Add user to list of viewers
+    if (viewerCache.containsKey(channelId)) {
+      Map<String, Object> viewerData = gson.fromJson(stream, jsonMapType);
+      Viewer viewer = new Viewer();
+      viewer.viewerId = viewerData.getOrDefault("viewer", null);
+      viewer.username = securityService.getUser().getUsername();
+      viewer.fullName = securityService.getUser().getName();
+      viewer.lastHeardFrom = Instant.now().getEpochSecond();
+      viewerCache.get(channelId).put(viewer.username, viewer);
+      logger.debug("Viewer ID: {}", viewer.viewerId);
+      logger.debug("Viewer cache for channel: {}", viewerCache.get(channelId));
+    }
+
+    return Response.ok(stream).build();
   }
 
-//  /**
-//   * Demo Endpoint
-//   *
-//   * @return The Hello World statement
-//   * @throws Exception
-//   */
-//  @POST
-//  @Path("demoViewer/{channelId}")
-//  @RestQuery(
-//          name = "viewer",
-//          description = "Get viewer by id",
-//          pathParameters = {
-//                  @RestParameter(
-//                          name = "channelId",
-//                          description = "Id of the livestream",
-//                          isRequired = true,
-//                          type = RestParameter.Type.STRING
-//                  )
-//          },
-//          responses = {
-//                  @RestResponse(
-//                          responseCode = HttpServletResponse.SC_OK,
-//                          description = "The livestream."
-//                  ),
-//                  @RestResponse(
-//                          responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-//                          description = "The underlying service could not output something."
-//                  )
-//          },
-//          returnDescription = "All clear."
-//  )
-//  public Response getDemo(@PathParam("channelId") String channelId) throws Exception {
-//    logger.info("REST call for demo endpoint.");
-//
-//    // Create a demo response
-//    JsonObject completeJson = new JsonObject();
-//    completeJson.addProperty("viewer", "<viewerid>");
-//    JsonObject streams = new JsonObject();
-//    streams.addProperty(
-//            "presenter",
-//            "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
-//    );
-//    streams.addProperty(
-//        "slides",
-//          "https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8"
-//    );
-//    completeJson.add("streams", streams);
-//
-//    String payload = new Gson().toJson(completeJson);
-//
-//    return Response.ok().entity(payload).build();
-//  }
+  @GET
+  @Path("viewer/{channelId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(
+          name = "viewer",
+          description = "Get current viewers for a given livestream channel",
+          pathParameters = {
+                  @RestParameter(
+                          name = "channelId",
+                          description = "Id of the livestream",
+                          isRequired = true,
+                          type = RestParameter.Type.STRING,
+                          defaultValue = "myChannelID"
+                  )
+          },
+          restParameters = {
+                  @RestParameter(
+                          name = "cutoff",
+                          isRequired = false,
+                          type = RestParameter.Type.INTEGER,
+                          description = "Location of to the animation",
+                          defaultValue = "91"
+                  )
+          },
+          responses = {
+                  @RestResponse(
+                          responseCode = HttpServletResponse.SC_OK,
+                          description = "The viewers of the livestream."
+                  )
+          },
+          returnDescription = "A JSON Object containing viewer information."
+  )
+  public Response getActiveChannelViewer(
+          @PathParam("channelId") String channelId,
+          @FormParam("cutoff") Integer cutoff) {
+    final long cutOff = cutoff == null ? 91 : (cutoff <= 0 ? Long.MAX_VALUE : cutoff);
+    final long now = Instant.now().getEpochSecond();
+    final String username = securityService.getUser().getUsername();
+    Map<String, Viewer> channelViewer = viewerCache.getOrDefault(channelId, Collections.emptyMap());
+
+    // Update last heard from
+    if (channelViewer.containsKey(username)) {
+      channelViewer.get(username).lastHeardFrom = now;
+    }
+
+    List<Viewer> activeViewer = viewerCache.getOrDefault(channelId, Collections.emptyMap())
+            .values()
+            .stream()
+            .filter(viewer -> now - viewer.lastHeardFrom < cutOff)
+            .collect(Collectors.toList());
+    return Response.ok(gson.toJson(activeViewer)).build();
+  }
+
+  @POST
+  @Path("demoViewer")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(
+          name = "demo-viewer",
+          description = "Mock endpoint to get viewer information",
+          responses = { @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Viewer information.") },
+          returnDescription = "All clear."
+  )
+  public Response demoViewer() throws Exception {
+
+    String username = securityService.getUser().getUsername();
+    logger.debug("REST call for demo endpoint from {}.", username);
+
+    return Response.ok("{"
+            + "\"viewer\": \"viewer-id-" + username + "\","
+            + "\"streams\": {"
+            + "\"presenter\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\","
+            + "\"slides\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\""
+            + "}}").build();
+  }
+
+  @GET
+  @Path("demoChannel")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RestQuery(
+          name = "demo-channel",
+          description = "Mock endpoint to get channel information",
+          responses = { @RestResponse(responseCode = HttpServletResponse.SC_OK, description = "Channel information.") },
+          returnDescription = "All clear."
+  )
+  public Response demoChannel() throws Exception {
+    logger.debug("REST call for channel demo endpoint");
+    return Response.ok(
+            "{ \"count\": 1, \"next\": null, \"previous\": null,"
+            + "\"results\": ["
+            + "{ \"id\": \"myChannelID\", \"name\": \"Demo\", \"portals\": [1] }"
+            + "]}").build();
+  }
 
   /**
    * Add a livestream
@@ -448,6 +527,8 @@ public class VitalLivestreamRestEndpoint {
 
       // Add
       if (vitalLivestreamService.updateLivestream(liveStream)) {
+        // Start a new list of users
+        viewerCache.put(liveStream.getId(), new ConcurrentHashMap<>());
         return Response.ok().build();
       } else {
         return Response.status(HttpServletResponse.SC_CONFLICT).
@@ -546,6 +627,7 @@ public class VitalLivestreamRestEndpoint {
 
       // Delete
       if (vitalLivestreamService.deleteLivestream(liveStream)) {
+        viewerCache.remove(liveStream.getId());
         return Response.ok().build();
       } else {
         return Response.status(HttpServletResponse.SC_CONFLICT).entity("Could not delete livestream").build();
