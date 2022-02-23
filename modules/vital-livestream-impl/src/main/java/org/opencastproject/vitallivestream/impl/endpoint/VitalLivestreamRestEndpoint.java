@@ -21,6 +21,7 @@
 
 package org.opencastproject.vitallivestream.impl.endpoint;
 
+import org.opencastproject.security.api.Role;
 import org.opencastproject.security.api.SecurityService;
 import org.opencastproject.security.api.TrustedHttpClient;
 import org.opencastproject.util.doc.rest.RestParameter;
@@ -49,6 +50,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -120,6 +122,7 @@ public class VitalLivestreamRestEndpoint {
     protected String fullName;
     protected Object viewerId;
     protected long lastHeardFrom;
+    protected Set<Role> roles;
   }
 
   /**
@@ -337,6 +340,7 @@ public class VitalLivestreamRestEndpoint {
       viewer.username = securityService.getUser().getUsername();
       viewer.fullName = securityService.getUser().getName();
       viewer.lastHeardFrom = Instant.now().getEpochSecond();
+      viewer.roles = securityService.getUser().getRoles();
       viewerCache.get(channelId).put(viewer.username, viewer);
       logger.debug("Viewer ID: {}", viewer.viewerId);
       logger.debug("Viewer cache for channel: {}", viewerCache.get(channelId));
