@@ -47,9 +47,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * Middleware between the Vital Streaming Agent and the video portal Valerie
@@ -167,7 +167,7 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
 
     // Update list of channels
     try {
-      channels = mergeChannels(configChannels, fetchChannels);
+      channels = mergeChannels(fetchChannels, configChannels);
     } catch (NullPointerException e) { }
   }
 
@@ -183,7 +183,7 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
       logger.warn("Could not fetch channels from endpoint: {}", e.getMessage());
     }
 
-    channels = mergeChannels(configChannels, fetchChannels);
+    channels = mergeChannels(fetchChannels, configChannels);
 
     return channels;
   }
@@ -347,14 +347,19 @@ public class VitalLivestreamServiceImpl implements VitalLivestreamService, Manag
    * @return combined list without duplicates
    * @throws NullPointerException
    */
-  private List<Channel> mergeChannels(List<Channel> channels1, List<Channel> channels2) throws NullPointerException {
-    List<Channel> channels = new ArrayList<>(
-            Stream.of(channels1, channels2)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toMap(Channel::getId,
-                            d -> d,
-                            (Channel x, Channel y) -> x == null ? y : x))
-                    .values());
+  private List<Channel> mergeChannels(List<Channel> fetchedChannel, List<Channel> configuredChannels)
+          throws NullPointerException {
+    if (configuredChannels == null || configuredChannels.isEmpty()) {
+      return fetchedChannel;
+    }
+    Set<String> fetchedChannelIdSet = fetchedChannel.stream().map(Channel::getId).collect(Collectors.toSet());
+    for (Channel configuredChannel : configuredChannels) {
+      String configuredChannelId = configuredChannel.getId();
+      if (!fetchedChannelIdSet.contains(configuredChannelId)) {
+        fetchedChannelIdSet.add(configuredChannelId);
+        fetchedChannel.add(configuredChannel);
+      }
+    }
     return channels;
   }
 }
