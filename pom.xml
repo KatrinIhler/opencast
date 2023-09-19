@@ -294,6 +294,8 @@
     <module>modules/videosegmenter-workflowoperation</module>
     <module>modules/vital-chat-api</module>
     <module>modules/vital-chat-impl</module>
+    <module>modules/vital-livestream-api</module>
+    <module>modules/vital-livestream-impl</module>
     <module>modules/waveform-api</module>
     <module>modules/waveform-ffmpeg</module>
     <module>modules/waveform-remote</module>
