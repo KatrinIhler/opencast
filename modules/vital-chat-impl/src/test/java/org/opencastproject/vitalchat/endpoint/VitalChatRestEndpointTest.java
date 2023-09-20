@@ -19,7 +19,7 @@
  *
  */
 
-package org.opencastproject.vitalchat.impl.endpoint;
+package org.opencastproject.vitalchat.endpoint;
 
 //import org.opencastproject.vitalchat.api.VitalChatService;
 //import org.opencastproject.vitalchat.impl.VitalChatServiceImpl;

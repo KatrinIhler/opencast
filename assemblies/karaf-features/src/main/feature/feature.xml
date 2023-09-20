@@ -107,6 +107,19 @@
     <bundle>mvn:org.springframework/spring-web/${spring.version}</bundle>
   </feature>
 
+  <feature name="opencast-vital-chat" version="${project.version}">
+    <feature>pax-web-jetty-websockets</feature>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-api/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-impl/${project.version}</bundle>
+  </feature>
+
+  <feature name="opencast-vital-livestream" version="${project.version}">
+    <feature>opencast-vital-chat</feature>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
+    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
+  </feature>
+
   <feature name="opencast-core" version="${project.version}">
     <feature>ext-core</feature>
 
@@ -157,6 +170,8 @@
     <feature>opencast-core</feature>
     <feature>opencast-services-processing-heavy-load</feature>
     <feature>opencast-services-processing-light-load</feature>
+    <feature>opencast-vital-chat</feature>
+    <feature>opencast-vital-livestream</feature>
 
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui-interface/${project.version}</bundle>
@@ -254,11 +269,6 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-videoeditor-workflowoperation/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videogrid-workflowoperation/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-workflowoperation/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-api/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-impl/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-workflow-condition-parser/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-workflow-service-impl/${project.version}</bundle>
@@ -269,6 +279,8 @@
 
   <feature name="opencast-admin" version="${project.version}">
     <feature>opencast-core</feature>
+    <feature>opencast-vital-chat</feature>
+    <feature>opencast-vital-livestream</feature>
 
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui-interface/${project.version}</bundle>
@@ -390,9 +402,6 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-workflowoperation/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>
@@ -405,6 +414,8 @@
 
   <feature name="opencast-adminpresentation" version="${project.version}">
     <feature>opencast-core</feature>
+    <feature>opencast-vital-chat</feature>
+    <feature>opencast-vital-livestream</feature>
 
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-admin-ui-interface/${project.version}</bundle>
@@ -531,11 +542,6 @@
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-videosegmenter-workflowoperation/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-api/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-chat-impl/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-api/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-livestream-impl/${project.version}</bundle>
-    <bundle start-level="82">mvn:org.opencastproject/opencast-vital-paella-player/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-api/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-remote/${project.version}</bundle>
     <bundle start-level="82">mvn:org.opencastproject/opencast-waveform-workflowoperation/${project.version}</bundle>

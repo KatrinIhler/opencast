@@ -19,7 +19,7 @@
  *
  */
 
-package org.opencastproject.vitalchat.impl.endpoint;
+package org.opencastproject.vitalchat.endpoint;
 
 import static org.opencastproject.vitalchat.api.VitalChat.websocketAddress;
 
