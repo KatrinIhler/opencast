@@ -30,17 +30,25 @@ import org.opencastproject.util.doc.rest.RestQuery;
 import org.opencastproject.util.doc.rest.RestResponse;
 import org.opencastproject.util.doc.rest.RestService;
 
+import org.apache.commons.lang3.StringUtils;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsResource;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -72,6 +80,31 @@ import javax.ws.rs.core.UriInfo;
 @Path("/redirect")
 @JaxrsResource
 public class RedirectEndpoint {
+
+  /**
+   * Configuration key for allowed domains to redirect.
+   */
+  public static final String ALLOWED_EXTERNAL_DOMAINS_KEY = "allowed.external.domains";
+  /**
+   * List of allowed domains to redirect.
+   */
+  private List<String> allowedExternalDomains = new ArrayList<>();
+
+  @Activate
+  @Modified
+  public void modified(Map<String, Object> properties) {
+    if (properties.containsKey(ALLOWED_EXTERNAL_DOMAINS_KEY)) {
+      this.allowedExternalDomains.clear();
+      String allowedExternalDomainsValue = (String) properties.get(ALLOWED_EXTERNAL_DOMAINS_KEY);
+      for (String allowedDomain : StringUtils.split(allowedExternalDomainsValue, ',')) {
+        String domain = StringUtils.trimToEmpty(allowedDomain);
+        if (StringUtils.isNotEmpty(domain)) {
+          this.allowedExternalDomains.add(domain);
+        }
+      }
+    }
+  }
+
   /**
    * Essentially the Post/Redirect/Get pattern
    *
@@ -112,6 +145,25 @@ public class RedirectEndpoint {
 
     } catch (MalformedURLException | URISyntaxException e) {
       return Response.status(Status.BAD_REQUEST).entity("invalid `target` URL").build();
+    }
+  }
+
+  @GET
+  @Path("external")
+  public Response external(@QueryParam("url") String url, @Context UriInfo uriInfo) {
+    if (url == null) {
+      return Response.status(Status.BAD_REQUEST).entity("missing `url` query parameter").build();
+    }
+    URI baseUri = uriInfo.getBaseUri();
+    try {
+      URI targetUri = new URL(url).toURI();
+      if (!targetUri.getAuthority().equals(baseUri.getAuthority())
+          && !allowedExternalDomains.contains(targetUri.getAuthority())) {
+        return Response.status(Status.BAD_REQUEST).entity("target domain not allowed").build();
+      }
+      return Response.temporaryRedirect(targetUri).build();
+    } catch (MalformedURLException | URISyntaxException e) {
+      return Response.status(Status.BAD_REQUEST).entity("invalid `url`").build();
     }
   }
 }
