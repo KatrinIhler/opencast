@@ -419,7 +419,9 @@ public class VitalLivestreamRestEndpoint {
     return Response.ok("{"
             + "\"viewer\": \"viewer-id-" + username + "\","
             + "\"streams\": {"
-            + "\"presenter\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\","
+            + "\"presenter\":"
+            + "\"https://bitdash-a.akamaihd.net/content/MI201109210084_1/"
+            + "m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8\","
             + "\"slides\": \"https://s3.opencast-niedersachsen.de/public/hls-test/720p.m3u8\""
             + "}}").build();
   }

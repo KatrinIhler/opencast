@@ -23,26 +23,13 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
             <executions>
+
               <execution>
-                <id>npm clean</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>pre-clean</phase>
-                <configuration>
-                  <executable>npm</executable>
-                  <arguments>
-                    <argument>cache</argument>
-                    <argument>verify</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-              <execution>
+                <phase>validate</phase>
                 <id>npm ci</id>
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>initialize</phase>
                 <configuration>
                   <executable>npm</executable>
                   <arguments>
@@ -50,30 +37,33 @@
                   </arguments>
                 </configuration>
               </execution>
+
               <execution>
-                <id>esline</id>
+                <phase>validate</phase>
+                <id>check</id>
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>validate</phase>
                 <configuration>
                   <executable>npm</executable>
                   <arguments>
                     <argument>run</argument>
-                    <argument>eslint</argument>
+                    <argument>check</argument>
                   </arguments>
                 </configuration>
               </execution>
+
               <execution>
+                <phase>validate</phase>
                 <id>frontend build</id>
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>compile</phase>
                 <configuration>
-                  <executable>node_modules/gulp/bin/gulp.js</executable>
+                  <executable>npm</executable>
                   <arguments>
-                    <argument>paella-opencast:build</argument>
+                    <argument>run</argument>
+                    <argument>build</argument>
                   </arguments>
                 </configuration>
               </execution>
@@ -108,17 +98,6 @@
 
               <execution>
                 <phase>validate</phase>
-                <id>npm clean</id>
-                <goals>
-                  <goal>npm</goal>
-                </goals>
-                <configuration>
-                  <arguments>cache verify</arguments>
-                </configuration>
-              </execution>
-
-              <execution>
-                <phase>validate</phase>
                 <id>npm ci</id>
                 <goals>
                   <goal>npm</goal>
@@ -127,24 +106,26 @@
                   <arguments>ci</arguments>
                 </configuration>
               </execution>
+
               <execution>
                 <phase>validate</phase>
-                <id>eslint</id>
+                <id>check</id>
                 <goals>
                   <goal>npm</goal>
                 </goals>
                 <configuration>
-                  <arguments>run eslint</arguments>
+                  <arguments>run check</arguments>
                 </configuration>
               </execution>
+
               <execution>
-                <phase>process-resources</phase>
-                <id>gulp build</id>
+                <phase>validate</phase>
+                <id>frontend build</id>
                 <goals>
-                  <goal>gulp</goal>
+                  <goal>npm</goal>
                 </goals>
                 <configuration>
-                  <arguments>paella-opencast:build</arguments>
+                  <arguments>run build</arguments>
                 </configuration>
               </execution>
             </executions>
@@ -174,7 +155,7 @@
               <outputDirectory>${basedir}/target/classes/ui/</outputDirectory>
               <resources>
                 <resource>
-                  <directory>./target/gulp/paella-opencast</directory>
+                  <directory>./target/paella-build</directory>
                   <includes>
                     <include>**</include>
                   </includes>

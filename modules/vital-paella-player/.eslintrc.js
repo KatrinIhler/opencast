@@ -1,18 +1,13 @@
 module.exports = {
-    'globals': {
-      'base': true,
-      '$': true,
-      'jQuery': true,
-      'paella': true
+    "extends": "../../docs/checkstyle/eslintrc.js",
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 2017,
+        "requireConfigFile": false
     },
-	  'rules': {
-      'no-unused-vars': [
-        'error',
-        {
-          'vars': 'local',
-          'args': 'none',
-          'ignoreRestSiblings': false
-        }
-      ]
+    "globals": {
+        "require": true,
+        "cookieconsent": true
     }
-  };
+};
