@@ -32,7 +32,7 @@ import getVideo360CanvasPluginContext from 'paella-webgl-plugins';
 import getMP4MultiQualityContext from 'paella-mp4multiquality-plugin';
 
 import { loadTrimming, setTrimming } from './TrimmingLoader';
-import EpisodeConversor from './EpisodeConversor.js';
+//import EpisodeConversor from './EpisodeConversor.js';
 import packagePom from '../../pom.xml';
 
 import dictionary from '../default-dictionaries.js';
@@ -133,12 +133,63 @@ const initParams = {
 
     // Load episode
     const loadEpisode = async () => {
-      const response = await fetch(url);
+      // VITAL PAELLA PLAYER CHANGES
+      const episodeId = url.split('id=')[1];
+      let userIpAddress = utils.getUrlParameter('ipaddress') ?? undefined;
+      userIpAddress = userIpAddress ? '?ipaddress=' + userIpAddress : '';
+      const response = await fetch('/vital-livestream/streams/' + episodeId + userIpAddress);
 
       if (response.ok) {
         const data = await response.json();
-        const conversor = new EpisodeConversor(data, config.opencast || {});
-        return conversor.data;
+        if (data['streams']) {
+
+          var convertedEpisode = [];
+          var mandatoryFlavors = ['presenter', 'presentation'];
+          for (var stream in data['streams']) {
+            // Fix flavor, else the Opemcast-Paella-Config will not display the streams
+            var flavor = '';
+            if (mandatoryFlavors.includes(stream)) {
+              flavor = stream;
+              mandatoryFlavors.splice(mandatoryFlavors.indexOf(flavor), 1);
+            } else {
+              if (mandatoryFlavors.length > 0) {
+                flavor = mandatoryFlavors[0];
+                mandatoryFlavors.splice(0, 1);
+              }
+            }
+
+            // Create stream object
+            var item = {
+              audioTag: undefined,
+              content: flavor,
+              preview: '',
+              type: 'video',
+              sources: {
+                hls: [{
+                  isLiveStream: true,
+                  isMaster: false,
+                  src: data['streams'][stream],
+                  preview: '',
+                  mimetype: 'application/x-mpegURL',
+                }]
+              }
+            };
+            convertedEpisode.push(item);
+          }
+          var fixedData = {
+            streams: convertedEpisode,
+            metadata: {title: 'title'},
+            frameList: [],
+            captions: [],
+          };
+
+          return fixedData;
+        }
+        else {
+          throw Error('VITAL PAELLA: Response did not contain streams');
+        }
+        //        const conversor = new EpisodeConversor(data, config.opencast || {});
+        //        return conversor.data;
       }
       else {
         throw Error('Invalid manifest url');
