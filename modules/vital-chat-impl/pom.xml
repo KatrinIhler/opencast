@@ -13,6 +13,10 @@
   <properties>
     <opencast.basedir>${project.basedir}/../..</opencast.basedir>
     <checkstyle.skip>false</checkstyle.skip>
+    <!--  The jetty version must be updated with each karaf/pax-web update.  -->
+    <!--  Running this command in the karaf shell will show you the current version of jetty:  -->
+    <!--      feature:list | grep pax-web-jetty  -->
+    <jetty.version>9.4.50.v20221201</jetty.version>
   </properties>
   <dependencies>
     <!-- Opencast dependencies -->
@@ -38,11 +42,28 @@
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.service.component.annotations</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>jakarta.websocket</groupId>
-      <artifactId>jakarta.websocket-api</artifactId>
-      <version>1.1.2</version>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.http</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-servlet</artifactId>
+      <version>${jetty.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.websocket</groupId>
+      <artifactId>websocket-api</artifactId>
+      <version>${jetty.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -69,7 +90,9 @@
         <configuration>
           <ignoredUnusedDeclaredDependencies>
             <!-- runtime tests -->
-            <ignoredUnusedDeclaredDependency>org.glassfish.jersey.core:jersey-server</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>
+              org.glassfish.jersey.core:jersey-server
+            </ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
@@ -84,6 +107,8 @@
             <Import-Package>
               javax.ws.rs;version=2.0.1,
               javax.ws.rs.core;version=2.0.1,
+              org.osgi.service.component,
+              org.eclipse.jetty.websocket.server,
               *
             </Import-Package>
             <Export-Package>

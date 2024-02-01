@@ -23,11 +23,21 @@ package org.opencastproject.vitalchat.impl;
 
 import org.opencastproject.vitalchat.api.VitalChat;
 
+import org.eclipse.jetty.websocket.api.CloseStatus;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.http.HttpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,14 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-
 @Component(
     name = "vitalchat-websocket",
     immediate = true,
@@ -53,7 +55,7 @@ import javax.websocket.server.ServerEndpoint;
     },
     service = VitalChat.class
 )
-@ServerEndpoint(value = VitalChat.websocketAddress)
+@WebSocket
 public class VitalChatSocket implements VitalChat {
 
   /** The module specific logger */
@@ -62,52 +64,68 @@ public class VitalChatSocket implements VitalChat {
   private static final Map<String, Set<Session>> sessions = Collections.synchronizedMap(new HashMap<>());
   private static final Map<String, List<String>> chatLogs = Collections.synchronizedMap(new HashMap<>());
 
-  @OnOpen
-  public void onOpen(Session session) throws Exception {
-    session.setMaxIdleTimeout(-1L);
+  @Reference
+  private HttpService httpService;
 
-    String id = urlParser(session.getRequestURI());
+  @Activate
+  public void activate() throws Exception {
+    httpService.registerServlet(websocketAddress, new VitalChatServlet(), null, null);
+  }
+
+  @Deactivate
+  public void deactivate() {
+    httpService.unregister(websocketAddress);
+  }
+
+  @OnWebSocketConnect
+  public void onOpen(Session session) throws Exception {
+    session.setIdleTimeout(-1);
+
+    String id = urlParser(session.getUpgradeRequest().getRequestURI());
     // Add session to chat
     try {
       sessions.get(id).add(session);
     }
     catch (NullPointerException e) {
-      session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE,
-          "The chat you tried to connect to does not exist"));
+      session.close(new CloseStatus(-1, "The chat you tried to connect to does not exist"));
     }
 
     // Send chatlog to session
     for (String msg : chatLogs.get(id)) {
-      session.getBasicRemote().sendText(msg);
+      session.getRemote().sendString(msg);
     }
   }
 
-  @OnClose
+  @OnWebSocketClose
   public void onClose(Session session, int statusCode, String reason) {
-    sessions.get(urlParser(session.getRequestURI())).remove(session);
+    sessions.get(urlParser(session.getUpgradeRequest().getRequestURI())).remove(session);
   }
 
-  @OnMessage
+  @OnWebSocketMessage
   public void onText(Session session, String msg) throws Exception {
-    String id = urlParser(session.getRequestURI());
+    String id = urlParser(session.getUpgradeRequest().getRequestURI());
     chatLogs.get(id).add(msg);
 
     for (Session ses : sessions.get(id)) {
-      ses.getBasicRemote().sendText(msg);
+      ses.getRemote().sendString(msg);
     }
   }
 
-  @OnError
-  public void onError(Session session, Throwable throwable) throws IOException {
-    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Servererror: " + throwable.getCause()));
+  @OnWebSocketError
+  public void onError(Session session, Throwable throwable) {
+    session.close(new CloseStatus(-1, "Servererror: " + throwable.getCause()));
   }
+
 
   private String urlParser(URI uri) {
     String path = uri.getPath();
     return path.substring(path.lastIndexOf('/') + 1);
   }
 
-  @Override
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#createChat(String)
+   */
   public boolean createChat(String id) {
     if (sessions.containsKey(id)) {
       logger.debug("Cannot create chat with id {}: Already exists", id);
@@ -120,7 +138,10 @@ public class VitalChatSocket implements VitalChat {
     return true;
   }
 
-  @Override
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#deleteChat(String)
+   */
   public boolean deleteChat(String id) {
     if (!sessions.containsKey(id)) {
       logger.debug("Cannot delete chat with id {}: Does not exist", id);
@@ -134,8 +155,12 @@ public class VitalChatSocket implements VitalChat {
     return true;
   }
 
-  @Override
+  /**
+   * {@inheritDoc}
+   * @see org.opencastproject.vitalchat.api.VitalChat#getChats()
+   */
   public String[] getChats() {
     return sessions.keySet().toArray(new String[sessions.size()]);
   }
+
 }
