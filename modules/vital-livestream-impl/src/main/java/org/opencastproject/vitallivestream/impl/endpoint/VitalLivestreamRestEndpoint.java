@@ -37,6 +37,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -243,7 +245,7 @@ public class VitalLivestreamRestEndpoint {
                           description = "Id of the livestream",
                           isRequired = true,
                           type = RestParameter.Type.STRING
-                  )
+                  ),
           },
           responses = {
                   @RestResponse(
@@ -259,7 +261,6 @@ public class VitalLivestreamRestEndpoint {
   )
   public Response getVitalLivestream(@PathParam("channelId") String channelId) throws Exception {
     logger.debug("REST call for livestream by id");
-
     return Response.ok().entity(
             gson.toJson(vitalLivestreamService.getLivestreamByChannel(channelId))
     ).build();
@@ -285,6 +286,14 @@ public class VitalLivestreamRestEndpoint {
                           type = RestParameter.Type.STRING
                   )
           },
+          restParameters = {
+              @RestParameter(
+                  name = "ipaddress",
+                  description = "Ip address of the user",
+                  isRequired = false,
+                  type = RestParameter.Type.STRING
+              ),
+          },
           responses = {
                   @RestResponse(
                           responseCode = HttpServletResponse.SC_OK,
@@ -297,7 +306,10 @@ public class VitalLivestreamRestEndpoint {
           },
           returnDescription = "A Json Object containing the streams."
   )
-  public Response getVitalLivestreamWithViewer(@PathParam("channelId") String channelId) throws Exception {
+  public Response getVitalLivestreamWithViewer(
+      @PathParam("channelId") String channelId,
+      @QueryParam("ipaddress") String userIpAddress
+  ) throws Exception {
     logger.debug("REST call for streams of a livestream by id");
 
     VitalLivestreamService.JsonVitalLiveStream livestream = vitalLivestreamService.getLivestreamByChannel(channelId);
@@ -312,6 +324,13 @@ public class VitalLivestreamRestEndpoint {
       if (credentials != null) {
         String encoding = Base64.getEncoder().encodeToString((credentials).getBytes());
         getDirectStream.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + encoding);
+      }
+      if (userIpAddress != null) {
+        final String json = "{\"client\": \"" + userIpAddress + "\"}";
+        final StringEntity entity = new StringEntity(json);
+        getDirectStream.setEntity(entity);
+        getDirectStream.setHeader("Accept", "application/json");
+        getDirectStream.setHeader("Content-type", "application/json");
       }
       response = httpClient.execute(getDirectStream);
       in = response.getEntity().getContent();

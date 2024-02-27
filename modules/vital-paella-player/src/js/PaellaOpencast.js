@@ -123,7 +123,9 @@ const initParams = {
     const loadEpisode = async () => {
       // VITAL PAELLA PLAYER CHANGES
       const episodeId = url.split('id=')[1];
-      const response = await fetch('/vital-livestream/streams/' + episodeId);
+      let userIpAddress = utils.getUrlParameter('ipaddress') ?? undefined;
+      userIpAddress = userIpAddress ? '?ipaddress=' + userIpAddress : '';
+      const response = await fetch('/vital-livestream/streams/' + episodeId + userIpAddress);
 
       if (response.ok) {
         const data = await response.json();
