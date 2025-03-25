@@ -16,7 +16,7 @@
     <!--  The jetty version must be updated with each karaf/pax-web update.  -->
     <!--  Running this command in the karaf shell will show you the current version of jetty:  -->
     <!--      feature:list | grep pax-web-jetty  -->
-    <jetty.version>9.4.52.v20230823</jetty.version>
+    <jetty.version>9.4.57.v20241219</jetty.version>
   </properties>
   <dependencies>
     <!-- Opencast dependencies -->
