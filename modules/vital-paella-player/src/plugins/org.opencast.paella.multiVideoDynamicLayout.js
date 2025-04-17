@@ -18,32 +18,47 @@
  * the License.
  *
  */
-import { ButtonPlugin } from 'paella-core';
-import AccountIcon from '../icons/account.svg';
 
-export default class LoginPlugin extends ButtonPlugin {
+import {VideoLayout} from 'paella-core';
+
+export default class MultiVideoDynamicLayout extends VideoLayout {
+  get identifier() {
+    return 'multiple-video-dynamic';
+  }
+
+  get layoutType() {
+    return 'dynamic';
+  }
+
   async load() {
-    this.icon = this.player.getCustomPluginIcon(this.name, 'buttonIcon') || AccountIcon;
+    this.player.log.debug('Multi video layout loaded');
   }
 
-  async isEnabled() {
-    try {
-      if (!(await super.isEnabled())) {
-        return false;
-      }
-      else {
-        const userInfo = await this.player.opencastAuth.getUserInfo();
-        const isAnonymous = ((userInfo.roles.length == 1) && (userInfo.roles[0] == userInfo.org.anonymousRole));
-        return isAnonymous;
-      }
-    }
-    catch(_e) {
-      return false;
-    }
+  getValidStreams(streamData) {
+    // Ignore content of streamData
+    return [streamData];
   }
 
-  async action() {
-    var authenticationUrl = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
-    window.location.href = authenticationUrl;
+  getValidContentIds() {
+    // Ignore content of streamData
+    return this.validContentIds;
+  }
+
+  getLayoutStructure(streamData) {
+    if (!this._currentVideos) {
+      const size = 100 / streamData.length;
+      this._currentVideos = streamData.map(d => {
+        return {
+          content: d.content,
+          visible: true,
+          size: size,
+        };
+      });
+    }
+
+    return {
+      hidden: false,
+      videos: this._currentVideos
+    };
   }
 }

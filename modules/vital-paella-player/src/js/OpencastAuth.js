@@ -18,11 +18,15 @@
  * the License.
  *
  */
-import { ButtonPlugin } from 'paella-core';
+
 import { getUrlFromOpencastServer } from './PaellaOpencast';
 
-export default class OpencastAuthButtonPlugin extends ButtonPlugin {
-  async _getUserInfo() {
+export default class OpencastAuth {
+  constructor(player) {
+    this.player = player;
+  }
+
+  async getUserInfo() {
     try {
       const response = await fetch(getUrlFromOpencastServer('/info/me.json'));
       if (response.ok) {
@@ -35,12 +39,12 @@ export default class OpencastAuthButtonPlugin extends ButtonPlugin {
     }
   }
 
-  async _getEpisodeACL() {
+  async getEpisodeACL() {
     try {
       const response = await fetch(getUrlFromOpencastServer(`/search/episode.json?id=${this.player.videoId}`));
       if (response.ok) {
         const episode = await response.json();
-        return episode['search-results']?.result?.acl;
+        return episode['result'][0]?.acl;
       }
       return null;
     }
@@ -49,7 +53,7 @@ export default class OpencastAuthButtonPlugin extends ButtonPlugin {
     }
   }
 
-  async _getSeriesACL() {
+  async getSeriesACL() {
     try {
       const { series } = this.player.videoManifest.metadata;
       if (!series) {
@@ -66,14 +70,15 @@ export default class OpencastAuthButtonPlugin extends ButtonPlugin {
     }
   }
 
-  async _getACL() {
-    return await this._getEpisodeACL() || await this._getSeriesACL();
+  async getACL() {
+    return await this.getEpisodeACL() || await this.getSeriesACL();
   }
 
-  async _canWrite() {
+  async canWrite() {
     try {
-      const userInfo = await this._getUserInfo();
-      const acl = await this._getACL();
+      const userInfo = await this.getUserInfo();
+      let acl = await this.getACL();
+      acl = acl?.acl ? acl.acl : acl;
       if (!userInfo || !acl) {
         return false;
       }
@@ -82,16 +87,15 @@ export default class OpencastAuthButtonPlugin extends ButtonPlugin {
       if (!(roles instanceof Array)) { roles = [roles]; }
 
       let canWrite = false;
-      if (acl.acl && acl.acl.ace) {
-        let aces = acl.acl.ace;
-        if (!(aces instanceof Array)) { aces = [aces]; }
+      if (acl) {
+        if (!(acl instanceof Array)) { acl = [acl]; }
 
         canWrite = roles.some(function(currentRole) {
           if (currentRole == userInfo.org.adminRole) {
             return true;
           }
           else {
-            return aces.some(function(currentAce) {
+            return acl.some(function(currentAce) {
               if (currentRole == currentAce.role) {
                 if (currentAce.action == 'write') {
                   return true;

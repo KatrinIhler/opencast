@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.opencastproject</groupId>
     <artifactId>base</artifactId>
-    <version>15.6</version>
+    <version>17.2</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <properties>
@@ -172,8 +172,6 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Build-Number>${buildNumber}</Build-Number>
             <Private-Package>ui.*</Private-Package>
             <Http-Alias>/vital-paella/ui</Http-Alias>
             <Http-Classpath>/ui</Http-Classpath>
