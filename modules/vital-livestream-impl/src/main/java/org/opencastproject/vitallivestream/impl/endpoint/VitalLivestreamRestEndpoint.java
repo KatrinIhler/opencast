@@ -40,6 +40,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +84,7 @@ import javax.ws.rs.core.Response;
     immediate = true,
     service = VitalLivestreamRestEndpoint.class
 )
-@Path("/")
+@Path("/vital-livestream")
 @RestService(
     name = "VitalLivestreamServiceEndpoint",
     title = "Vital Livestream Service Endpoint",
@@ -98,6 +99,7 @@ import javax.ws.rs.core.Response;
             + "<a href=\"https://github.com/opencast/opencast/issues\">Opencast Issue Tracker</a>"
     }
 )
+@JaxrsResource
 public class VitalLivestreamRestEndpoint {
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(VitalLivestreamRestEndpoint.class);

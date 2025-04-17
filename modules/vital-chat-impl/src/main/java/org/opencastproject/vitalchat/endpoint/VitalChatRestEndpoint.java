@@ -33,6 +33,7 @@ import com.google.gson.Gson;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ import javax.ws.rs.core.Response;
         immediate = true,
         service = VitalChatRestEndpoint.class
 )
-@Path("/")
+@Path("/vitalchat")
 @RestService(
         name = "VitalChatServiceEndpoint",
         title = "Vital Chat Service Endpoint",
@@ -76,6 +77,7 @@ import javax.ws.rs.core.Response;
                         + "<a href=\"https://github.com/opencast/opencast/issues\">Opencast Issue Tracker</a>"
         }
 )
+@JaxrsResource
 public class VitalChatRestEndpoint {
   /** The logger */
   private static final Logger logger = LoggerFactory.getLogger(VitalChatRestEndpoint.class);
