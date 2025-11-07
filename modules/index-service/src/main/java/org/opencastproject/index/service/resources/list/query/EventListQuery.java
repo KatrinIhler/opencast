@@ -90,6 +90,10 @@ public class EventListQuery extends ResourceListQueryImpl {
   public static final String FILTER_IS_PUBLISHED_NAME = "isPublished";
   public static final String FILTER_IS_PUBLISHED_LABEL = "FILTERS.EVENTS.IS_PUBLISHED.LABEL";
 
+  /* CUSTOM FILTER */
+  public static final String FILTER_FACULTY_NAME = "faculty";
+  private static final String FILTER_FACULTY_LABEL = "Fachbereich";
+
   public EventListQuery() {
     super();
     this.availableFilters.add(createSeriesFilter(Option.none()));
@@ -99,6 +103,7 @@ public class EventListQuery extends ResourceListQueryImpl {
     this.availableFilters.add(createStatusFilter(Option.none()));
     this.availableFilters.add(createCommentsFilter(Option.none()));
     this.availableFilters.add(createIsPublishedFilter(Option.none()));
+    this.availableFilters.add(createFacultyFilter(Option.none()));
   }
 
   /**
@@ -451,5 +456,18 @@ public class EventListQuery extends ResourceListQueryImpl {
   public static ResourceListFilter<String> createIsPublishedFilter(Option<String> isPublished) {
     return FiltersUtils.generateFilter(isPublished, FILTER_IS_PUBLISHED_NAME, FILTER_IS_PUBLISHED_LABEL, SourceType.SELECT,
         Option.some(EventsListProvider.ISPUBLISHED));
+  }
+
+  /* CUSTOM FILTER */
+
+  /**
+   * Create a new {@link ResourceListFilter} based on the faculty filter from extended metadata
+   * @param faculty
+   *          the faculty to filter on wrapped in an {@link Option} or {@link Option#none()}
+   * @return a new {@link ResourceListFilter} for progress based query
+   */
+  public static ResourceListFilter<String> createFacultyFilter(Option<String> faculty) {
+    return FiltersUtils.generateFilter(faculty, FILTER_FACULTY_NAME, FILTER_FACULTY_LABEL, SourceType.SELECT,
+        Option.some("FACULTIES"));
   }
 }

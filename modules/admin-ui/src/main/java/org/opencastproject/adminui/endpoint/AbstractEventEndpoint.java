@@ -2619,6 +2619,8 @@ public abstract class AbstractEventEndpoint {
         query.withEventStatus(filters.get(name));
       if (EventListQuery.FILTER_PUBLISHER_NAME.equals(name))
         query.withPublisher(filters.get(name));
+      if (EventListQuery.FILTER_FACULTY_NAME.equals(name)) // hardcoded custom filter
+        query.withExtendedMetadata("dublincore/episode-extended","faculty", filters.get(name));
       if (EventListQuery.FILTER_COMMENTS_NAME.equals(name)) {
         switch (Comments.valueOf(filters.get(name))) {
           case NONE:
