@@ -265,7 +265,7 @@ public final class SchedulerUtil {
   public static final Fn2<EventCatalogUIAdapter, String, Boolean> eventOrganizationFilter = new Fn2<EventCatalogUIAdapter, String, Boolean>() {
     @Override
     public Boolean apply(EventCatalogUIAdapter catalogUIAdapter, String organization) {
-      return catalogUIAdapter.getOrganization().equals(organization);
+      return catalogUIAdapter.handlesOrganization(organization);
     }
   };
 }
