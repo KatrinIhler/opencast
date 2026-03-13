@@ -472,6 +472,13 @@ public final class MetadataJson {
     }
   }
 
+  /**
+   * Custom Graz patch to reduce diffs to community in other modules, can be removed most likely with OC 20
+  */
+  public static JsonArray listToJson(final MetadataList metadataList, final boolean withOrderedText)  {
+    return listToJson(metadataList, withOrderedText, false);
+  }
+
   public static JsonArray listToJson(final MetadataList metadataList, final boolean withOrderedText,
       final boolean withListprovider) {
     JsonArray catalogs = new JsonArray();

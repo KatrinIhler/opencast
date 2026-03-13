@@ -552,7 +552,7 @@ public class SeriesEndpoint {
     DublinCoreMetadataCollection collection = getSeriesMetadata(optSeries.get());
     ExternalMetadataUtils.changeSubjectToSubjects(collection);
     metadataList.add(indexService.getCommonSeriesCatalogUIAdapter(), collection);
-    boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+    boolean includeListprovider = true;
     return ApiResponseBuilder.Json.ok(requestedVersion, MetadataJson.listToJson(metadataList, false,
         includeListprovider));
   }
@@ -564,7 +564,7 @@ public class SeriesEndpoint {
       return ApiResponseBuilder.notFound("Cannot find a series with id '%s'.", id);
     }
 
-    boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+    boolean includeListprovider = true;
     // Try the main catalog first as we load it from the index.
     if (typeMatchesSeriesCatalogUIAdapter(type, indexService.getCommonSeriesCatalogUIAdapter())) {
       DublinCoreMetadataCollection collection = getSeriesMetadata(optSeries.get());
@@ -1005,7 +1005,7 @@ public class SeriesEndpoint {
     try {
       MetadataList metadataList = indexService.updateAllSeriesMetadata(seriesID, metadataJSON, elasticsearchIndex);
       final ApiVersion requestedVersion = ApiMediaType.parse(acceptHeader).getVersion();
-      boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+      boolean includeListprovider = true;
       return ApiResponseBuilder.Json.ok(acceptHeader, MetadataJson.listToJson(metadataList, true,
           includeListprovider));
     } catch (IllegalArgumentException e) {

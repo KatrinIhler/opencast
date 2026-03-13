@@ -1329,7 +1329,7 @@ public class EventsEndpoint implements ManagedService {
       try {
         Optional<MetadataList> metadata = getEventMetadata(event);
         if (metadata.isPresent()) {
-          boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+          boolean includeListprovider = true;
           json.add("metadata", MetadataJson.listToJson(metadata.get(), true, includeListprovider));
         }
       } catch (Exception e) {
@@ -1578,7 +1578,7 @@ public class EventsEndpoint implements ManagedService {
         if (collection != null) {
           convertStartDateTimeToApiV1(collection);
         }
-        boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+        boolean includeListprovider = true;
         return ApiResponseBuilder.Json.ok(requestedVersion, MetadataJson.listToJson(actualList, withOrderedText,
             includeListprovider));
       }
@@ -1694,7 +1694,7 @@ public class EventsEndpoint implements ManagedService {
                 String.format("Unable to parse type '%s' as a flavor so unable to find the matching catalog.", type));
       }
 
-      boolean includeListprovider = !requestedVersion.isSmallerThan(ApiVersion.VERSION_1_12_0);
+      boolean includeListprovider = true;
       // Try the main catalog first as we load it from the index.
       EventCatalogUIAdapter eventCatalogUIAdapter = indexService.getCommonEventCatalogUIAdapter();
       if (flavor.get().equals(eventCatalogUIAdapter.getFlavor())) {
